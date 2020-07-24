@@ -30,7 +30,7 @@ antibiotic_one_name = arg.antibiotic_one_name
 antibiotic_one_conc = arg.antibiotic_one_conc.split(',')
 antibiotic_two_name = arg.antibiotic_two_name
 antibiotic_two_conc = arg.antibiotic_two_conc.split(',')
-upload_file = args.upload
+upload_file = arg.upload
 
 if len(first_wells) > checkerboard_nr:
     print('To many first wells for checkerboards on plate.')
