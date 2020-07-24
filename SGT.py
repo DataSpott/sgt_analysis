@@ -11,34 +11,35 @@ Original file is located at
 import argparse
 parser = argparse.ArgumentParser(description = 'Analyses growth curves for the SGT-method.')
 
-parser.add_argument('--checkerboard_nr', type = int, help = "Number of Checkerboards at the well-plate.")
+parser.add_argument('--checkerboard_nr', help = "Number of Checkerboards at the well-plate.")
 parser.add_argument('--first_well', help = "First wells of all checkerboards on the plate.")
 parser.add_argument('--last_well', help = "Last wells of all Checkerboards on the plate.")
-parser.add_argument('--log_time', type = float, help = "Time in [min] that the investigated bacteria needs tto grow one log-level.")
-parser.add_argument('--antibiotic_one_name', type = str, help = "Name of the first antibiotic.", default = 'Antibiotic 1')
-parser.add_argument('--antibiotic_one_conc', type = list, help = "Concentrations of the first antibiotic.")
-parser.add_argument('--antibiotic_two_name', type = str, help = "Name of the second antibiotic.", default = 'Antibiotic 2')
-parser.add_argument('--antibiotic_two_conc', type = list, help = "Concentrations of the second antibiotic.")
-parser.add_argument('--file')
+parser.add_argument('--log_time', help = "Time in [min] that the investigated bacteria needs tto grow one log-level.")
+parser.add_argument('--antibiotic_one_name', help = "Name of the first antibiotic.", default = 'Antibiotic 1')
+parser.add_argument('--antibiotic_one_conc', help = "Concentrations of the first antibiotic.")
+parser.add_argument('--antibiotic_two_name', help = "Name of the second antibiotic.", default = 'Antibiotic 2')
+parser.add_argument('--antibiotic_two_conc', help = "Concentrations of the second antibiotic.")
+parser.add_argument('--upload', help = "The file with your data.")
 
 arg = parser.parse_args()
-checkerboard_nr = arg.checkerboard_nr
-first_wells = arg.first_well
-last_wells = arg.last_well
-log_time = arg.log_time
+checkerboard_nr = int(arg.checkerboard_nr)
+first_wells = arg.first_well.split(',')
+last_wells = arg.last_well.split(',')
+log_time = float(arg.log_time)
 antibiotic_one_name = arg.antibiotic_one_name
-antibiotic_one_conc = arg.antibiotic_one_conc
+antibiotic_one_conc = arg.antibiotic_one_conc.split(',')
 antibiotic_two_name = arg.antibiotic_two_name
-antibiotic_two_conc = arg.antibiotic_two_conc
+antibiotic_two_conc = arg.antibiotic_two_conc.split(',')
+upload_file = args.upload
 
-if int(len(first_wells)) > checkerboard_nr:
+if len(first_wells) > checkerboard_nr:
     print('To many first wells for checkerboards on plate.')
-elif int(len(first_wells)) < checkerboard_nr:
+elif len(first_wells) < checkerboard_nr:
     print('To less first wells for checkerboards on plate.')
 
-if int(len(last_wells)) > checkerboard_nr:
+if len(last_wells) > checkerboard_nr:
     print('To many last wells for checkerboards on plate.')
-elif int(len(last_wells)) < checkerboard_nr:
+elif len(last_wells) < checkerboard_nr:
     print('To less last wells for checkerboards on plate.')
 
 checkerboards = []
@@ -78,7 +79,7 @@ from scipy.optimize import curve_fit
 ################################################################################
 ## File-conversion
 
-data_xls = pd.read_excel(fn, sheet_name=0)
+data_xls = pd.read_excel(upload_file, sheet_name=0)
 data_xls.to_csv('data.csv', encoding = 'utf-8')
 
 ################################################################################
