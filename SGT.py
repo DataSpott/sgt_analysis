@@ -19,6 +19,7 @@ parser.add_argument('--antibiotic_one_name', type = str, help = "Name of the fir
 parser.add_argument('--antibiotic_one_conc', type = list, help = "Concentrations of the first antibiotic.")
 parser.add_argument('--antibiotic_two_name', type = str, help = "Name of the second antibiotic.", default = 'Antibiotic 2')
 parser.add_argument('--antibiotic_two_conc', type = list, help = "Concentrations of the second antibiotic.")
+parser.add_argument('--file')
 
 arg = parser.parse_args()
 checkerboard_nr = arg.checkerboard_nr
