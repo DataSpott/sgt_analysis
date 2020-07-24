@@ -22,7 +22,8 @@ parser.add_argument('--antibiotic_two_conc', help = "Concentrations of the secon
 parser.add_argument('--upload', help = "The file with your data.")
 
 arg = parser.parse_args()
-checkerboard_nr = int(arg.checkerboard_nr)
+checkerboard_nr = arg.checkerboard_nr
+checkerboard_nr = int(checkerboard_nr)
 first_wells = arg.first_well.split(',')
 last_wells = arg.last_well.split(',')
 log_time = float(arg.log_time)
