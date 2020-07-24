@@ -7,78 +7,87 @@ Original file is located at
     https://colab.research.google.com/drive/14yyMLrwDFbqrbvGzmS0fhyBq7T6EwFmI
 """
 
-# Commented out IPython magic to ensure Python compatibility.
 ## Initialization
+import argparse
+parser = argparse.ArgumentParser(description = 'Analyses growth curves for the SGT-method.')
+
+parser.add_argument('checkerboard_nr', type = int, help = "Number of Checkerboards at the well-plate."
+parser.add_argument('first_well', type = list, help = "First wells of all checkerboards on the plate.")
+parser.add_argument('last_well', type = list, help = "Last wells of all Checkerboards on the plate.")
+parser.add_argument('log_time', type = float, help = "Time in [min] that the investigated bacteria needs tto grow one log-level.")
+parser.add_argument('antibiotic_one_name', type = str, help = "Name of the first antibiotic.", default = 'Antibiotic 1')
+parser.add_argument('antibiotic_one_conc', type = list, help = "Concentrations of the first antibiotic.")
+parser.add_argument('antibiotic_two_name', type = str, help = "Name of the second antibiotic.", default = 'Antibiotic 2')
+parser.add_argument('antibiotic_two_conc', type = list, help = "Concentrations of the second antibiotic.")
+
+arg = parser.parse_args()
+checkerboard_nr = arg.checkerboard_nr
+first_wells = arg.first_well
+last_wells = arg.last_wells
+log_time = arg.log_time
+antibiotic_one_name = arg.antibiotic_one_name
+antibiotic_one_conc = arg.antibiotic_one_conc
+antibiotic_two_name = arg.antibiotic_two_name
+antibiotic_two_conc = arg.antibiotic_two_conc
+
+if int(len(first_wells)) > checkerboard_nr:
+    print('To many first wells for checkerboards on plate.')
+elif int(len(first_wells)) < checkerboard_nr:
+    print('To less first wells for checkerboards on plate.')
+
+if int(len(last_wells)) > checkerboard_nr:
+    print('To many last wells for checkerboards on plate.')
+elif int(len(last_wells)) < checkerboard_nr:
+    print('To less last wells for checkerboards on plate.')
+
+checkerboards = []
+
+for board in range(checkerboard_nr):
+    checkerboards.append([board, first_wells[board], last_wells[board]])
+
+
+################################################################################
+## Module-import
+
 import pandas as pd
 import numpy as np
 import altair as alt
 import xlrd as rd
 import string
 import subprocess as sub
+import subprocess
+import os
+import sys
 
-pip install altair_saver
-pip install selenium
-#apt-get install chromium-chromedriver
+def install(package):
+    sub.check_call([sys.executable, "-m", "pip", "install", package])
+
+install('altair_saver')
+install('selenium')
+
+sub.check_call(['apt-get', 'install', '-y', 'chromium-chromedriver'],
+     stdout=open(os.devnull,'wb'), stderr=None) 
+
 
 import altair_saver
 
 from scipy.optimize import curve_fit
 
-## User_input for Checkerboard-Specification
-board_count = int(input('Enter the number of checkerboards at your Well-Plate: '))
-print('\n')
 
-checkerboards = []
+################################################################################
+## File-conversion
 
-for board in range(board_count):
-    
-    print("For the %s. Checkerboard: " %((board + 1)))
-    first_well = input("Enter the number of the first Well of the checkerboard (all antibiotic-treated wells, e.g. 'A01'): ")
-    last_well = input("Enter the number of the last Well of the checkerboard (all antibiotic-treated wells, e.g. 'H12'): ")
-    print('\n')
-
-    checkerboards.append([board, first_well, last_well])
-
-log_time = int(input("Enter time (in [min]) that the investigated bacteria needs to grow one log-level (e.g.: 70): "))
-
-antibiotic_one_input = input("Enter name and concentrations of the first antibiotic (rising in rows), in ascending order and separated by commas (e.g.: Nitroxolin, 0, 8, 32, 64): ")
-antibiotic_two_input = input("Enter name and concentrations of the second antibiotic (rising in columns), in ascending order and separated by commas (e.g.: Dalbavancin, 0, 8, 32, 64): ")
-
-antibiotic_one = antibiotic_one_input.split(',')
-antibiotic_two = antibiotic_two_input.split(',')
-
-antibiotic_one_name = str(antibiotic_one[0])
-antibiotic_two_name = str(antibiotic_two[0])
-
-## File-upload
-from google.colab import files
-
-uploaded = files.upload()
-
-for fn in uploaded.keys():
-  print('User uploaded file "{name}" with length {length} bytes'.format(name=fn, length=len(uploaded[fn])))
-
-
-#File-conversion
 data_xls = pd.read_excel(fn, sheet_name=0)
 data_xls.to_csv('data.csv', encoding = 'utf-8')
 
-test = pd.read_csv('data.csv')
-try:
-    test
-except NameError:
-    test_exists = False
-else:
-    test_exists = True
+################################################################################
+## Parsing and conversion to dataframe
 
-if test_exists == True:
-    print("Conversion of %s to .csv-file successful." %(fn))
-else:
-    print("Conversion of %s to .csv-file failed." %(fn))
-
-
+#check if first cell of uploaded file is empty:
 if pd.notna(data_xls.iloc[0, 0]):
     
+    #if TRUE parsing of Tecan-format starts:
+    #creates lists of possible well-names:
     letter_list = list(string.ascii_uppercase)
     number_list = np.linspace(1, 50, 50)
     possible_wells = []
@@ -88,11 +97,12 @@ if pd.notna(data_xls.iloc[0, 0]):
         
             possible_well = letter + str(int(number))
             possible_wells.append(possible_well)
-
+    
     first_column_name = data_xls.columns[0]
 
     well_index_list = []
-
+    
+    #check for possible-wells in first column of file:
     for well in possible_wells:
     
        index = data_xls.loc[data_xls[first_column_name] == well, [first_column_name]].index.tolist()
@@ -104,18 +114,22 @@ if pd.notna(data_xls.iloc[0, 0]):
     time_list = []
     get_time_list = []
  
+    #get time-values from file:
     get_time_list.extend(data_xls.iloc[(int(well_index_list[0][1][0]) + 1), 1:])
 
     time_list.append(['Well', get_time_list])
 
     well_values = []
 
+    #for-loop over all wells found in the file:
     for well in range(len(well_index_list)):
     
         well_name = well_index_list[well][0]
-    
+        
+        #checks if well-number is < 10:
         if int(well_name[1:]) < 10:
             
+            #if TRUE a 0 is added between letter and number:
             well_name = well_name[0] + '0' + well_name[1:]
     
         well_values.append([well_name, list(data_xls.iloc[(int(well_index_list[well][1][0]) + 3), 1:].values)])
@@ -124,11 +138,11 @@ if pd.notna(data_xls.iloc[0, 0]):
 
     raw_data_dict = {}
 
-    #for-loop over all elements in the extended time_list:
-    for elements in range(len(time_list)):
+    #for-loop over all times in the extended time_list:
+    for times in range(len(time_list)):
     
         #sets the well-name (or in case of the time-data the string 'Well') as keys for their values in the dicitionary:
-        raw_data_dict[str(time_list[elements][0])] = time_list[elements][1]
+        raw_data_dict[str(time_list[times][0])] = time_list[times][1]
 
     #creates dataframe 'data_raw' with the dictionary:
     data_raw = pd.DataFrame(raw_data_dict)
@@ -146,35 +160,44 @@ if pd.notna(data_xls.iloc[0, 0]):
     data_raw = data_raw[1:]
 
     #displays dataframe 'data_raw':
-    print(data_raw)#[data_raw['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'): ")] #Optional: only a User-chosen Well is displayed
+    #print(data_raw)#[data_raw['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'): ")] #Optional: only a User-chosen Well is displayed
 
 
 elif pd.isna(data_xls.iloc[0, 0]):
     #Build a pandas dataframe from the .csv-file:
-    data_raw = pd.read_csv('data.csv')                                              #creates a dataframe from the .csv-file
+    data_raw = pd.read_csv('data.csv')
 
-    #deletes rows with unnecessary information (temp.-values and measurement-data):
-    data_raw = data_raw[:-5]                                                        #removes last 5 rows of the dataframe (-> measurment data)
-    data_raw = data_raw.iloc[1:]                                                    #removes the first row (-> temp.-values) by skipping it
+    #deletes rows with unnecessary information (temp.-values & measurement-data):
+    data_raw = data_raw[:-5]
+    data_raw = data_raw.iloc[1:]
 
     #brings the dataframe in an optimised form for plotting:
-    data_raw = data_raw.rename(columns={'Unnamed: 0.1': 'Well'})                    #renames the column 'Unnamed: 0.1' to 'Well'
-    del data_raw['Unnamed: 0']                                                      #deletes the column with the name 'Unnamed: 0'
+    data_raw = data_raw.rename(columns={'Unnamed: 0.1': 'Well'})
+    del data_raw['Unnamed: 0']
 
     #deletes the 's' from the time-values:
-    for index in range(len(data_raw.columns)):                                      #for-loop over all columns
-        data_raw.columns.values[index] =  data_raw.columns.values[index].replace('s', '')   #deletes the 's' at the end of the column name with the specific index
+    #for-loop over all columns
+    for index in range(len(data_raw.columns)):
+        data_raw.columns.values[index] =  data_raw.columns.values[index].replace('s', '')
 
-    #add a '0' for Wells with single digit numbers: 
-    for index in range(len(data_raw)):                                              #for-loop over the row-count of the dataframe
-        if len(data_raw.iloc[index, 0]) == 2:                                       #if-loop which tests if the Well-description is two letters long (e. g.: A1 = True; A10 = False)
-            string = data_raw.iloc[index, 0]                                        #if the condition is true a variable 'string' is set up which refers the value (= Well-name) of the specific cell
-            string = string[:1] + '0' + string[1:]                                  #a additional '0' is added in the second position of the string (by creating a new string from the old one) 
-            data_raw.iloc[index, 0] = string                                        #the cell-value is overwritten by the new string
+    #add a '0' for Wells with single digit numbers:
+    #for-loop over the row-count of the dataframe:
+    for index in range(len(data_raw)):
+        
+        #check if well-name is two signs long:
+        if len(data_raw.iloc[index, 0]) == 2:
+            
+            #if TRUE a 0 is added between the letter and number:
+            string = data_raw.iloc[index, 0]
+            string = string[:1] + '0' + string[1:]
+            data_raw.iloc[index, 0] = string
 
     #displays dataframe 'data_raw':
-    print(data_raw)#[data_raw['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'): ")] #Optional: only a User-chosen Well is displayed
+    #print(data_raw)#[data_raw['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'): ")] #Optional: only a User-chosen Well is displayed
 
+
+################################################################################
+## Wide-to-long-conversion
 
 #uses the panda melt-command to bring the dataframe from wide to long form, where Well is an 'ID#, by which specific values (Time & Value) are identified:
 data_melted = pd.melt(data_raw, id_vars = ['Well'], var_name = 'Time', value_name = 'Value')
@@ -184,8 +207,11 @@ data_melted['Time'] = data_melted['Time'].astype(float)
 data_melted['Value'] = data_melted['Value'].astype(float)
 
 #displays new dataframe 'data_melted':
-data_melted#[data_melted['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'): ")] #Optional: only a User-chosen Well is displayed
+#data_melted#[data_melted['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'): ")] #Optional: only a User-chosen Well is displayed
 
+
+################################################################################
+## Sigmoid curve-fitting
 
 #Definition of the sigmoid-function:
 def sigmoid(x, L, x0, k, n):                                                    #L = curve's maximum value; x0 = x-value of the sigmoid´s midpoint (turnpoint, where the curve is linear); k = logistic growth rate or steepness of the curve (; n = value for y at x = 0)
@@ -196,7 +222,6 @@ def sigmoid(x, L, x0, k, n):                                                    
 well_plate = list(data_melted['Well'])
 well_plate = list(dict.fromkeys(well_plate))
 
-#creates empty main-arrays:
 fitted_values = []
 popt_list = []
 
@@ -220,20 +245,20 @@ for well in well_plate:
     #curve_fit:
     popt, pcov = curve_fit(sigmoid, x_data, y_data, p0)
     
-    #append popt and acutal well to main-array:
     popt_list.append([well, popt[0], popt[1], popt[2], popt[3]])
 
     #get fitted function from optimized parameters:
     fitted_y = sigmoid(x_data, *popt)
     
-    #append new y-values with corresponding Well to list:
     fitted_values.append([well, np.array(x_data), fitted_y])
     
 #displays list 'fitted_values':
 #print(fitted_values)
 
 
-#creates empty main-array:
+################################################################################
+## Computation of fitted data
+
 fitted_data = []
 
 #primary for-loop over all fitted values:
@@ -247,15 +272,17 @@ for wells in range(len(fitted_values)):
         time = fitted_values[wells][1][position]                                        
         fitted_y = fitted_values[wells][2][position]
         
-        #append data to main-array:
         fitted_data.append([well, time, fitted_y])
 
 #creation of a second dataframe with the columns 'Well', 'Time' and 'Value' from the list 'fitted_data':
 data_fitted = pd.DataFrame(fitted_data, columns = ['Well', 'Time', 'Fitted Value'])
 
 #displays dataframe 'data_fitted':
-print(data_fitted)#[data_fitted['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'): ")] #Optional: only a User-chosen Well is displayed
+#print(data_fitted)#[data_fitted['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'): ")] #Optional: only a User-chosen Well is displayed
 
+
+################################################################################
+## Dataframe-merging
 
 #create multiindex 'Well' and 'Time' for dataframe 'data_fitted':
 data_fitted_multiindex = data_fitted.set_index(['Well', 'Time'], drop = True)
@@ -283,13 +310,15 @@ else:
     data_merged = data_melted.join(data_fitted_multiindex, on = ['Well', 'Time'])
 
 #display dataframe 'data_merged':
-print(data_merged)#[data_merged['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'): ")] #Optional: only a User-chosen Well is displayed
+#print(data_merged)#[data_merged['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'): ")] #Optional: only a User-chosen Well is displayed
 
+
+################################################################################
+## Plotting of the raw data and fitted sigmoid-curves
 
 #get a list of all wells in dataframe 'data':
 plate_wells = list(data_merged['Well'])
 
-#creates empty main-array:
 well_numbers = []
 
 #for-loop over all wells in dataframe 'data_merged':
@@ -301,6 +330,7 @@ for wells in range(len(plate_wells)):
 #deletes duplicates in the array:
 well_numbers = list(dict.fromkeys(well_numbers))
 
+#sets the number of rows in which graphs are plotted:
 plot_columns = int(max(well_numbers))
 
 #deactivates the max_row limit of altair for the processed dataframe:
@@ -318,10 +348,7 @@ raw_data = alt.Chart(data_merged).mark_point(opacity=0.4, color = "teal"
 ).properties(
     width = 300,
     height = 200
-)#.add_selection(
-    #brush
-#).facet(column = 'Well'
-#).interactive()
+)
 
 #fitted-data-plot:
 fitted_curves = alt.Chart(data_merged).mark_line(color = "black"
@@ -334,8 +361,14 @@ fitted_curves = alt.Chart(data_merged).mark_line(color = "black"
 alt.layer(raw_data, fitted_curves, data = data_merged).facet(facet = 'Well', columns = plot_columns)
 
 
+################################################################################
+## Cut-off-determination
+
 cut_off = float(input("Set CutOff: "))
 
+
+################################################################################
+## µ-calculation & tangent-application
 
 #variables matching the possible user-input for comparison in the if-condition:
 decision_positive = 'Yes'
@@ -369,7 +402,6 @@ if decision_manual_automatic.lower() == decision_positive.lower():
     well_plate = list(data_merged['Well'])
     well_plate = list(dict.fromkeys(well_plate))
 
-    #creates first empty main-array:
     boundary_values = []
     
     #for-loop over all wells:
@@ -397,13 +429,10 @@ if decision_manual_automatic.lower() == decision_positive.lower():
             µ = (delta_y / delta_x)
         
         else:
-            #if TRUE a note is written for µ:
             µ = 'division by 0'
         
-        #append resulting data to first main-array:
         boundary_values.append([well, upper_boundary, upper_time, lower_boundary, lower_time, µ])
     
-    #creates second empty main-array:
     y0_list = []
     
     #for-loop over all wells in the second main-array:
@@ -411,7 +440,6 @@ if decision_manual_automatic.lower() == decision_positive.lower():
         
         if type(boundary_values[well][5]) != str:
             
-            print(boundary_values[well])
             #setup initial data:
             m = float(boundary_values[well][5])
             x = float(boundary_values[well][2])
@@ -420,7 +448,6 @@ if decision_manual_automatic.lower() == decision_positive.lower():
             #compute n from y = mx + n:
             n = (y - (m * x))
 
-            #append data to third main-array:
             y0_list.append([boundary_values[well][0], m, n])
         
         else:
@@ -433,7 +460,7 @@ if decision_manual_automatic.lower() == decision_positive.lower():
     data = pd.DataFrame(y0_list, columns = ['Well', 'µ_max', 'y0'])
     
     #display resulting dataframe:
-    print(data)
+    #print(data)
 
 #
 #
@@ -444,7 +471,6 @@ if decision_manual_automatic.lower() == decision_negative.lower():
     well_plate = list(data_merged['Well'])
     well_plate = list(dict.fromkeys(well_plate))
 
-    #create empty main-array:
     µ_values = []
 
     #primary for-loop over all wells:
@@ -453,7 +479,6 @@ if decision_manual_automatic.lower() == decision_negative.lower():
         #row-count for that well as condition for secondary for-loop:
         row_count = data_merged[data_merged['Well'] == well].shape[0]
     
-        #create empty arrays:
         µ = []
         time = []
 
@@ -470,12 +495,10 @@ if decision_manual_automatic.lower() == decision_negative.lower():
             delta_x = next_time - actual_time
             delta_y = next_value - actual_value
             m = (delta_y / delta_x)
-               
-            #append processed data to arrays:
+            
             µ.append(m)
             time.append(next_time)
     
-        #append data to main-array:
         µ_values.append([well, µ, time])
 
     #display resulting array:
@@ -484,7 +507,6 @@ if decision_manual_automatic.lower() == decision_negative.lower():
     #define function to find max µ-values in array:
     def µ_max(array):
     
-        #create empty main-array:
         µ_max_list = []
     
         #primary for-loop over all wells:
@@ -505,7 +527,6 @@ if decision_manual_automatic.lower() == decision_negative.lower():
                     µ_max = array[wells][1][value]
                     µ_max_time = array[wells][2][value]
         
-            #append data to main-array:
             µ_max_list.append([well, µ_max_time, µ_max])
         
         return µ_max_list
@@ -521,6 +542,10 @@ if decision_manual_automatic.lower() == decision_negative.lower():
 
     #display resulting dataframe:
     #print("data_µ_max: ", data_µ_max, "\n")#[data_µ_max['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'): ")] #Optional: only a User-chosen Well is displayed
+
+
+################################################################################
+## Dataframe-merging for automated µ-calculation
 
     #create multiindex 'Well' and 'Time' for dataframe 'data_µ_max':
     data_µ_max_multiindex = data_µ_max.set_index(['Well', 'Time'], drop = True)
@@ -539,7 +564,10 @@ if decision_manual_automatic.lower() == decision_negative.lower():
     #display dataframe 'data_merged':
     #print("data_merged:\n", data_merged, "\n")#[data_merged['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'): ")] #Optional: only a User-chosen Well is displayed
 
-    #create empty main-array:
+
+################################################################################
+## Creation of dataframe 'data'
+
     y0_list = []
 
     #for-loop over all wells:
@@ -553,15 +581,17 @@ if decision_manual_automatic.lower() == decision_negative.lower():
         #compute n from y = mx + n
         n = y - m * x
     
-        #append data to main-array:
         y0_list.append([wells, m, n])
 
     #create dataframe from the resulting array:
     data = pd.DataFrame(y0_list, columns = ['Well', 'µ_max', 'y0'])
 
     #display dataframe 'data':
-    print("data:\n", data)#[data['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'):")] #Optional: only a User-chosen Well is displayed
+    #print("data:\n", data)#[data['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'):")] #Optional: only a User-chosen Well is displayed
 
+
+################################################################################
+## SGT-calculation
 
 #row-count as condititon for following loop:
 row_count = data.shape[0]
@@ -584,13 +614,14 @@ for row in range(row_count):
         data.loc[row, 'SGT'] = 'not computable'
 
 #displays dataframe 'data':
-data#[data['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'): ")] #Optional: only a User-chosen Well is displayed
+#data#[data['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'): ")] #Optional: only a User-chosen Well is displayed
 
+################################################################################
+## log-level-reduction calculation
 
 #get row-count of dataframe 'data':
 row_count = data.shape[0]
 
-#creates empty main-array
 calculated_values = []
 
 #for-loop over all checkerboards:
@@ -638,7 +669,8 @@ for boards in range(len(checkerboards)):
                     calculated_values.append([well_name, SGT_subtracted_value, 
                         log_level_reduction, first_antibiotic_concentration, 
                         second_antibiotic_concentration])
-
+        
+        #check if well-letter is out of the checkerboard-bounds:
         elif well_name[0] <= first_well[0] or well_name[0] >= last_well[0]:
             if int(well_name[1:]) >= int(first_well[1:]) and int(well_name[1:]) <= int(last_well[1:]):
                 
@@ -666,7 +698,8 @@ for boards in range(len(checkerboards)):
                     calculated_values.append([well_name, SGT_subtracted_value, 
                         log_level_reduction, first_antibiotic_concentration, 
                         second_antibiotic_concentration])
-
+        
+        #check if well-number is out of the checkerboard-bounds:
         elif int(well_name[1:]) <= int(first_well[1:]) or int(well_name[1:]) >= int(last_well[1:]):
             if well_name[0] >= first_well[0] and well_name[0] <= last_well[0]:
                 
@@ -703,10 +736,13 @@ data_calculated_values = pd.DataFrame(calculated_values, columns = ['Well',
     (antibiotic_two_name + '-concentration')])
 
 #displays dataframe 'data_calculated_values':
-data_calculated_values#[data_calculated_values['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'): ")] #Optional: only a User-chosen Well is displayed
+#print(data_calculated_values)#[data_calculated_values['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'): ")] #Optional: only a User-chosen Well is displayed
 
 
-#create index 'Well' for dataframe 'data_calculated_values':
+################################################################################
+## Dataframe-merging
+
+#set column 'Well' as index:
 data_calculated_values_index = data_calculated_values.set_index(['Well'], drop = True)
 
 antibiotic_one_column = str(antibiotic_one_name + '-concentration')
@@ -739,20 +775,21 @@ else:
     data = data.merge(data_calculated_values_index, on = ['Well'])
 
 #display dataframe 'data':
-data#[data['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'): ")] #Optional: only a User-chosen Well is displayed
+#data#[data['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'): ")] #Optional: only a User-chosen Well is displayed
 
+
+################################################################################
+## Determination of BBC-Wells
 
 #get row-count of dataframe 'data':
 row_count = data.shape[0]
 
-#creates empty main-arrays:
 first_antibiotic_bbcs = []
 second_antibiotic_bbcs = []
 
 #for-loop over all checkerboards:
 for boards in range(len(checkerboards)):
     
-    #creates empty array:
     first_antibiotic_concentrations =[]
 
     #initialize data for if-conditions:
@@ -773,13 +810,11 @@ for boards in range(len(checkerboards)):
                     #get concentration of the first antibiotic in this well:
                     first_antibiotic_concentrations.append(data.loc[rows, antibiotic_one_column])
 
-    #append data to main-array:
     first_antibiotic_bbcs.append(first_antibiotic_concentrations)
 
 #for-loop over all checkerboards:
 for boards in range(len(checkerboards)):
     
-    #creates empty array
     second_antibiotic_concentrations = []
 
     #initialize data for if-conditions:
@@ -800,13 +835,10 @@ for boards in range(len(checkerboards)):
                     #get concentration of the second antibiotic in this well:
                     second_antibiotic_concentrations.append(data.loc[rows, antibiotic_two_column])
 
-    #append data to main-array:
     second_antibiotic_bbcs.append(second_antibiotic_concentrations)
 
-#displays both main-arrays:
-print(first_antibiotic_bbcs, second_antibiotic_bbcs)
+#print(first_antibiotic_bbcs, second_antibiotic_bbcs)
 
-#create new empty main-arrays:
 first_antibiotic_bbc = []
 second_antibiotic_bbc = []
 
@@ -817,14 +849,14 @@ for boards in range(len(checkerboards)):
     first_antibiotic_bbc.append(first_antibiotic_bbcs[boards][0])
     second_antibiotic_bbc.append(second_antibiotic_bbcs[boards][0])
 
-#displays new main-arrays:
-print(first_antibiotic_bbc, second_antibiotic_bbc)
+#print(first_antibiotic_bbc, second_antibiotic_bbc)
 
 
-#get row-count of dataframe 'data':
+################################################################################
+## Determination of synergism
+
 row_count = data.shape[0]
 
-#creates empty main-array:
 fici_values = []
 
 #for-loop over all checkerboards:
@@ -838,7 +870,6 @@ for boards in range(len(checkerboards)):
     antibiotic_one_bbc = first_antibiotic_bbc[boards]
     antibiotic_two_bbc = second_antibiotic_bbc[boards]
     
-    #creates empty arrays:
     fici_value_per_well = []
     wells = []
 
@@ -857,21 +888,21 @@ for boards in range(len(checkerboards)):
                         actual_second_antibiotic_concentration = data[data['Well'] == well_name][antibiotic_two_column].values[0]
                         well_fici_value = ((actual_first_antibiotic_concentration/antibiotic_one_bbc) + (actual_second_antibiotic_concentration/antibiotic_two_bbc))
                     
-                        #append data to arrays:
                         wells.append(str(well_name))
                         fici_value_per_well.append(well_fici_value)
 
-    #append arrays in main-array:
     fici_values.append([wells, fici_value_per_well])
 
-#displays main-array:
-print(fici_values)
+#print(fici_values)
 
+
+################################################################################
+## Identification of first wells in rows & columns
 
 #defines a function which seeks the first letter in alphabetical order and the smallest number in an given list of well-names:
 def well_naming(array):
     
-    #sets the letter and number of thefirst well in the list:
+    #sets the letter and number of the first well in the list:
     well_letter = array[0][0]
     well_number = array[0][1:]
     
@@ -888,7 +919,6 @@ def well_naming(array):
 #get a list of all wells in dataframe 'data':
 plate_wells = list(data['Well'])
 
-#creates empty main-arrays:
 well_letters = []
 well_numbers = []
 first_wells_in_rows_and_columns = []
@@ -907,7 +937,6 @@ well_numbers = list(dict.fromkeys(well_numbers))
 #for_loop over all checkerboards:
 for boards in range(len(checkerboards)):
     
-    #creates empty arrays:
     first_well_in_row = []
     first_well_in_column = []
     
@@ -965,18 +994,18 @@ for boards in range(len(checkerboards)):
     #deletes all duplicates in the extended row-array and saves it as new variable:
     first_wells_in_rows_and_columns.append(list(dict.fromkeys(first_well_in_row)))
 
-#displays the resulting array:   
-print(first_wells_in_rows_and_columns)
+#print(first_wells_in_rows_and_columns)
 
 
-#creates empty main-arrays:
+################################################################################
+## FICI-value-calculation for determined first wells
+
 board_fici_values = []
 board_fici_values_with_well = []
 
 #for-loop over all checkerboards:
 for boards in range(len(checkerboards)):
     
-    #create empty arrays:
     corresponding_fici_value = []
     corresponding_fici_value_with_well = []
     
@@ -990,11 +1019,9 @@ for boards in range(len(checkerboards)):
         corresponding_fici_value.append(fici_values[boards][1][well_index])
         corresponding_fici_value_with_well.append([first_wells_in_rows_and_columns[boards][wells], fici_values[boards][1][well_index]])
     
-    #appends data to the main-arrays:
     board_fici_values.append(corresponding_fici_value)
     board_fici_values_with_well.append(corresponding_fici_value_with_well)
 
-#creates new main-array:
 fici_average = []
 
 #for-loop over all checkerboards:
@@ -1004,15 +1031,18 @@ for boards in range(len(checkerboards)):
     fici_average.append(np.average(board_fici_values[boards]))
 
 #displays the resulting arrays:
-for boards in range(len(checkerboards)):
-    print("First wells of all rows and columns of Checkerboard %s with an log-level-reduction >= 3 and their corresponding FICI-value:"
+# for boards in range(len(checkerboards)):
+#     print("First wells of all rows and columns of Checkerboard %s with an log-level-reduction >= 3 and their corresponding FICI-value:"
 #     %(boards + 1), '\n',
-    board_fici_values_with_well[boards],
-    '\n',
-    "The average of the FICI-values for this board is: ",
-    fici_average[boards],
-    '\n')
+#     board_fici_values_with_well[boards],
+#     '\n',
+#     "The average of the FICI-values for this board is: ",
+#     fici_average[boards],
+#     '\n')
 
+
+################################################################################
+## Plotting of complete graphs
 
 data_results_plot = data_merged.copy()
 
@@ -1109,7 +1139,8 @@ plotted.save("chart.svg", scale_factor = 5.0)
 plotted
 
 
-import os
+################################################################################
+## Summarise results
 
 if os.path.exists('result.md') == True:
     os.remove("result.md")
@@ -1191,7 +1222,7 @@ for boards in range(len(checkerboards)):
         #if FALSE the  Checkerboard is just numbered with the index and used as key in the dicitionary which references the dataframe 'data_results_copy' without all rows whose well wasn´t in well_list. Sets the column with the well-names as index:
         checkerboard_dict["Checkerboard_{0}".format(boards_index)] = data_results_copy.drop(data_results_copy[data_results_copy.Well.isin(well_list) == False].index).set_index('Well', drop = True).to_markdown()
 
-#displays the actual key (Checkerboard-name) and the corresponding value (= dataframe) of the dictionary:
+#for-loop over all checkerboards in the dictionary:
 for keys in range(len(checkerboard_dict)):
     actual_key = list(checkerboard_dict)[keys]
     #print(actual_key, '\n', checkerboard_dict[actual_key], '\n')
