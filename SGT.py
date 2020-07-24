@@ -11,14 +11,14 @@ Original file is located at
 import argparse
 parser = argparse.ArgumentParser(description = 'Analyses growth curves for the SGT-method.')
 
-parser.add_argument('checkerboard_nr', type = int, help = "Number of Checkerboards at the well-plate.")
-parser.add_argument('first_well', type = list, help = "First wells of all checkerboards on the plate.")
-parser.add_argument('last_well', type = list, help = "Last wells of all Checkerboards on the plate.")
-parser.add_argument('log_time', type = float, help = "Time in [min] that the investigated bacteria needs tto grow one log-level.")
-parser.add_argument('antibiotic_one_name', type = str, help = "Name of the first antibiotic.", default = 'Antibiotic 1')
-parser.add_argument('antibiotic_one_conc', type = list, help = "Concentrations of the first antibiotic.")
-parser.add_argument('antibiotic_two_name', type = str, help = "Name of the second antibiotic.", default = 'Antibiotic 2')
-parser.add_argument('antibiotic_two_conc', type = list, help = "Concentrations of the second antibiotic.")
+parser.add_argument('--checkerboard_nr', type = int, help = "Number of Checkerboards at the well-plate.")
+parser.add_argument('--first_well', type = list, help = "First wells of all checkerboards on the plate.")
+parser.add_argument('--last_well', type = list, help = "Last wells of all Checkerboards on the plate.")
+parser.add_argument('--log_time', type = float, help = "Time in [min] that the investigated bacteria needs tto grow one log-level.")
+parser.add_argument('--antibiotic_one_name', type = str, help = "Name of the first antibiotic.", default = 'Antibiotic 1')
+parser.add_argument('--antibiotic_one_conc', type = list, help = "Concentrations of the first antibiotic.")
+parser.add_argument('--antibiotic_two_name', type = str, help = "Name of the second antibiotic.", default = 'Antibiotic 2')
+parser.add_argument('--antibiotic_two_conc', type = list, help = "Concentrations of the second antibiotic.")
 
 arg = parser.parse_args()
 checkerboard_nr = arg.checkerboard_nr
