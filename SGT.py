@@ -21,7 +21,7 @@ parser.add_argument('--antibiotic_two_name', help = "Name of the second antibiot
 parser.add_argument('--antibiotic_two_conc', nargs='+', help = "Concentrations of the second antibiotic.")
 parser.add_argument('--upload', help = "The file with your data.")
 parser.add_argument('--cut_off', help = "Declare an CutOff-value for the SGT-calculation")
-parser.add_argument('--automation_decision', help = "Do you want the programm to automatically compute µ_max or manually set boundaries for the linear area of the growth-curves?", default = 'No')
+parser.add_argument('--automation_decision', help = "Do you want the programm to automatically compute µ_max or manually set boundaries for the linear area of the growth-curves?", choices = ['Yes', 'No'], default = 'No')
 
 arg = parser.parse_args()
 checkerboard_nr = int(arg.checkerboard_nr)
@@ -33,8 +33,8 @@ antibiotic_one_conc = arg.antibiotic_one_conc[0].split(',')
 antibiotic_two_name = arg.antibiotic_two_name
 antibiotic_two_conc = arg.antibiotic_two_conc[0].split(',')
 upload_file = arg.upload
-cut_off = arg.cut_off
-decision_manual_automatic = arg.automation_decision
+cut_off = float(arg.cut_off)
+decision_manual_automatic = str(arg.automation_decision)
 
 if len(first_wells) > checkerboard_nr:
     print('To many first wells for checkerboards on plate.')
