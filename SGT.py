@@ -20,18 +20,21 @@ parser.add_argument('--antibiotic_one_conc', nargs='+', help = "Concentrations o
 parser.add_argument('--antibiotic_two_name', help = "Name of the second antibiotic.", default = 'Antibiotic 2')
 parser.add_argument('--antibiotic_two_conc', nargs='+', help = "Concentrations of the second antibiotic.")
 parser.add_argument('--upload', help = "The file with your data.")
+parser.add_argument('--cut_off', help = "Declare an CutOff-value for the SGT-calculation")
+parser.add_argument('--automation_decision', help = "Do you want the programm to automatically compute µ_max or manually set boundaries for the linear area of the growth-curves?", default = 'No')
 
 arg = parser.parse_args()
-checkerboard_nr = float(arg.checkerboard_nr)
-checkerboard_nr = int(checkerboard_nr)
-first_wells = arg.first_well
-last_wells = arg.last_well
+checkerboard_nr = int(arg.checkerboard_nr)
+first_wells = arg.first_well[0].split(',')
+last_wells = arg.last_well[0].split(',')
 log_time = float(arg.log_time)
 antibiotic_one_name = arg.antibiotic_one_name
-antibiotic_one_conc = arg.antibiotic_one_conc
+antibiotic_one_conc = arg.antibiotic_one_conc[0].split(',')
 antibiotic_two_name = arg.antibiotic_two_name
-antibiotic_two_conc = arg.antibiotic_two_conc
+antibiotic_two_conc = arg.antibiotic_two_conc[0].split(',')
 upload_file = arg.upload
+cut_off = arg.cut_off
+decision_manual_automatic = arg.automation_decision
 
 if len(first_wells) > checkerboard_nr:
     print('To many first wells for checkerboards on plate.')
@@ -366,7 +369,7 @@ alt.layer(raw_data, fitted_curves, data = data_merged).facet(facet = 'Well', col
 ################################################################################
 ## Cut-off-determination
 
-cut_off = float(input("Set CutOff: "))
+#cut_off = float(input("Set CutOff: "))
 
 
 ################################################################################
@@ -377,8 +380,8 @@ decision_positive = 'Yes'
 decision_negative = 'No'
 
 #user-decision to progress either manually or automatic:
-print("This program offers you the possibility to determine the tangent for the linear area of the growth curves either manually or automatic.")
-decision_manual_automatic = input("Do you want to manually set an area for the tangent-calculation? Enter Yes/No: ")
+#print("This program offers you the possibility to determine the tangent for the linear area of the growth curves either manually or automatic.")
+#decision_manual_automatic = input("Do you want to manually set an area for the tangent-calculation? Enter Yes/No: ")
 
 #function to find value in a given array that is closest to a given value:
 def find_nearest(array, value):                                                 
