@@ -83,9 +83,31 @@ In this case just click the Play-Button again.
 
 ## 3. Using SGT-Analyser with Shell-commandline
 
-### 3.1 Getting started
+### 3.1 Getting started with Shell-commandline
 
-This part of the program is still work in progress. Please use the Google Colab variant for the time being.
+* Open a shell-terminal
+* use "git clone" to download the Git-repository from Github
+* navigate into the downloaded repository-folder at your computer
+
+:::warning
+The program is written using Python3, so there may be issues when executing with earlier Python-versions.
+:::
+
+* use "sudo apt install python3-pip" to install the pip3 installer for Python3
+
+* use "pip3 install modul_name" to set up the following modules:
+1. pandas
+2. altair
+3. xlrd
+4. altair_saver
+5. selenium
+6. scipy
+7. tabulate
+8. IPython
+
+### 3.2. Executing the program with Shell-commandline
+
+* 
 
 ## 4. Testing SGT-Analyser
 
