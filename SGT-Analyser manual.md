@@ -137,11 +137,16 @@ If you use the optional flag *--use_linear_area* **or** *-u* you also need to us
 * using only the required flags the program will automatically calculate µ
 * using the optional flag *--output* **or** *-o* you can specify the destination-folder and name of the results-file
 * using the optional flag *--use_linea_area* **or** *-u* in combination with *--upper_boundary* and *--lower_boundary* let you set a linear area over all grwoth-curves to calculate µ 
+* write the corresponding parameters behind each flag as shown in the following example:
 
 :::info
 **Example**
 *python3 SGT_Analyser.py --checkerboard_nr **2** --first_well **A01 A07** --last_well **G06 G12** --log_time **70** --antibiotic_one_name **Nitroxolin** --antibiotic_one_conc **0 4 8 16 32 64 128** --antibiotic_two_name **Dalbavancin** --antibiotic_two_conc **0 0.5 1 2 4 8** --input **~/.../SGT_Analyser/Example_Data/Tecan_Sunrise_test_data.xlsx** --cut_off **0.6** --output **Results.md** --use_linear_area --upper_boundary **0.6** --lower_boundary **0.4**"*
 :::
+
+* confirm the command
+* the program will inform you about it's progress via outputs to the terminal
+* when the program finished the analysis it returns a results-file and a svg-file with the resulting diagramms either in the current directory or if you specified another location via the *--output*-flag into this directory
 
 
 ## 4. Testing SGT-Analyser
