@@ -11,7 +11,7 @@ By uploading an excel-dataset and defining the checkerboard as well as the antib
 
 The layouts of the checkerboards at the well-plate are determined by using information about the first and last well of the board. The first well refers to the well in the upper left corner and should be your control (-> concentration of both antibiotics = 0 µg/ml). The last well describes the well in the lower right corner of the board. The layout is for better understanding also illustrated in the following image 1.
 
-![Checkerboard-blueprint wasn´t able to load...](https://github.com/DataSpott/SGT-Analysis/blob/master/Checkerboard_blueprint_with_description.png?raw=true "Checkerboard-Blueprint")
+![Checkerboard-blueprint wasn´t able to load...](https://raw.githubusercontent.com/DataSpott/SGT-Analysis/master/pictures/Checkerboard_blueprint_with_description.png "Checkerboard-Blueprint")
 
 The user can choose if the, for the calculations needed, µ-value is calculated automatically or if a manual input of a linear area over all growth-curves shall be used for the calculations.
 
