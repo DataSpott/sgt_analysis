@@ -2,6 +2,7 @@
 
 Welcome to the **"SGT-Analyser"**, a tool for the automated analysis of antibiotic-synergisms via the "Start Growth Time"-method.
 
+
 ## 1. General information
 
 The program **"SGT-Analyser"** uses the "Start Growth Time"-methode to analyse growth-curves and allow a statement about a possible synergism between two antibiotics.
@@ -30,6 +31,7 @@ SGT-Analyser uses Excel-formats as the Tecan Infinite or Tecan Sunrise create. T
 :::
 
 You can make a Testrun by using the example data-files and parameters provided in chapter "4. Testing SGT-Analyser".
+
 
 ## 2. Using SGT-Analyser in Google Colab
 
@@ -81,11 +83,12 @@ In this case just click the Play-Button again.
 * start the fifth block by left-clicking the Play-button 
 * a .md ("Markdown")-file with the results-tables and a .svg ("Scaleable Vector Graphic")-file with the resulting diagrams for all wells will be downloaded to your computer
 
+
 ## 3. Using SGT-Analyser with Shell-commandline
 
 ### 3.1 Getting started with Shell-commandline
 
-* Open a shell-terminal
+* open a Shell-terminal
 * use "git clone" to download the Git-repository from Github
 * navigate into the downloaded repository-folder at your computer
 
@@ -107,7 +110,39 @@ The program is written using Python3, so there may be issues when executing with
 
 ### 3.2. Executing the program with Shell-commandline
 
-* 
+* open a Shell-terminal
+* use *"python3 ~/.../SGT_Analyser.py"* with the following flags to analyse your Excel-file:
+**This flags are requried and specify your parameters**
+1. --checkerboard_nr
+2. --first_well
+3. --last_well
+4. --log_time
+5. --antibiotic_one_name
+6. --antibiotic_one_conc
+7. --antibiotic_two_name 
+8. --antibiotic_two_conc
+9. --input **or** -i
+10. --cut_off
+
+**This flags are optional**
+11. --output **or** -o
+11. --use_linear_area **or** -u
+12. --upper_boundary
+13. --lower_boundary
+
+:::warning
+If you use the optional flag *--use_linear_area* **or** *-u* you also need to use the flags *--upper_boundary* and *--lower_boundary*
+:::
+
+* using only the required flags the program will automatically calculate µ
+* using the optional flag *--output* **or** *-o* you can specify the destination-folder and name of the results-file
+* using the optional flag *--use_linea_area* **or** *-u* in combination with *--upper_boundary* and *--lower_boundary* let you set a linear area over all grwoth-curves to calculate µ 
+
+:::info
+**Example**
+*python3 SGT_Analyser.py --checkerboard_nr **2** --first_well **A01 A07** --last_well **G06 G12** --log_time **70** --antibiotic_one_name **Nitroxolin** --antibiotic_one_conc **0 4 8 16 32 64 128** --antibiotic_two_name **Dalbavancin** --antibiotic_two_conc **0 0.5 1 2 4 8** --input **~/.../SGT_Analyser/Example_Data/Tecan_Sunrise_test_data.xlsx** --cut_off **0.6** --output **Results.md** --use_linear_area --upper_boundary **0.6** --lower_boundary **0.4**"*
+:::
+
 
 ## 4. Testing SGT-Analyser
 
