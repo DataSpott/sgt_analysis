@@ -86,7 +86,8 @@ checkerboards = []
 for board in range(checkerboard_nr):
     checkerboards.append([board, first_wells[board], last_wells[board]])
 
-#check if output-directory exists & if not create it:
+#check if output-directory exists & create a Results-directory in it:
+output_path = str(output_path) + '/SGT_Analysis_Results'
 os.makedirs(output_path, exist_ok=True)
 
 ################################################################################
@@ -742,12 +743,6 @@ def tangent_value_calc(dataframe_one, dataframe_two, actual_well, time_values):
 
 #check if output-flag was used:
 if output_path != os. getcwd():
-
-    # #get path 
-    # result_file_path = str(os.path.dirname(str(result_file)))
-    # print(result_file_path)
-    # #check if there is a path:
-    # if len(result_file_path) > 0:
         
     #change working directory to the path
     os.chdir(output_path)
