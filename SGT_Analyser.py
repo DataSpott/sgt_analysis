@@ -37,18 +37,18 @@ parser.add_argument('--antibiotic_one_name', help = "Name of the first antibioti
 parser.add_argument('--antibiotic_one_conc', nargs = '+', help = "Concentrations of the first antibiotic.")
 parser.add_argument('--antibiotic_two_name', help = "Name of the second antibiotic.", default = 'Antibiotic 2')
 parser.add_argument('--antibiotic_two_conc', nargs = '+', help = "Concentrations of the second antibiotic.")
-parser.add_argument('--upload', help = "Path to the file with your data.")
+parser.add_argument('-i', '--input', help = "Path to the file with your data.")
 parser.add_argument('--cut_off', help = "Declare an CutOff-value for the SGT-calculation")
-parser.add_argument('--use_linear_area', help = "Optional flag if you want to determine a linear area for the µ-calculation", action = 'store_true', default = False)
+parser.add_argument('-u','--use_linear_area', help = "Optional flag if you want to determine a linear area for the µ-calculation", action = 'store_true', default = False)
 parser.add_argument('--upper_boundary', help = "OD-value of the upper boundary of the linear area")
 parser.add_argument('--lower_boundary', help = "OD-value of the lower boundary of the linear area")
-parser.add_argument('-o', '--output_file', help = "Name of the output-file", type = argparse.FileType('w', encoding = 'UTF-8'), default = sys.stdout)
+parser.add_argument('-o', '--output_directory', help = "Name of the output-directory", default = os. getcwd())
 
 #parsing:
 arg = parser.parse_args()
 
 #check if a upper & lower boundary were given when using the manual linear area:
-if arg.use_linear_area and (args.upper_boundary is None or args.lower_boundary is None):
+if arg.use_linear_area and (arg.upper_boundary is None or arg.lower_boundary is None):
     parser.error("--use_linear_area requires --upper_boundary and --lower_boundary.")
 
 #define arguments as variables:
@@ -60,10 +60,10 @@ antibiotic_one_name = arg.antibiotic_one_name
 antibiotic_one_conc = arg.antibiotic_one_conc
 antibiotic_two_name = arg.antibiotic_two_name
 antibiotic_two_conc = arg.antibiotic_two_conc#[0].split(',')
-upload_file = arg.upload
+input_file = arg.input
 cut_off = float(arg.cut_off)
 use_linear_area = arg.use_linear_area
-result_file = arg.output_file
+output_path = arg.output_directory
 
 if arg.use_linear_area == True:
 
@@ -86,6 +86,8 @@ checkerboards = []
 for board in range(checkerboard_nr):
     checkerboards.append([board, first_wells[board], last_wells[board]])
 
+#check if output-directory exists & if not create it:
+os.makedirs(output_path, exist_ok=True)
 
 ################################################################################
 ## Function-definitions
@@ -736,6 +738,21 @@ def tangent_value_calc(dataframe_one, dataframe_two, actual_well, time_values):
 
 
 ################################################################################
+## Change working directory if result-files are directed to other directory
+
+#check if output-flag was used:
+if output_path != os. getcwd():
+
+    # #get path 
+    # result_file_path = str(os.path.dirname(str(result_file)))
+    # print(result_file_path)
+    # #check if there is a path:
+    # if len(result_file_path) > 0:
+        
+    #change working directory to the path
+    os.chdir(output_path)
+
+################################################################################
 ## Check if parameters fit
 
 #get number of given concentrations for each antibiotic:
@@ -882,8 +899,7 @@ else:
 ################################################################################
 ## File-conversion
 
-data_xls = pd.read_excel(upload_file, sheet_name=0)
-data_xls.to_csv('data.csv', encoding = 'utf-8')
+data_xls = pd.read_excel(input_file, sheet_name=0)
 
 
 ################################################################################
@@ -984,20 +1000,20 @@ if pd.notna(data_xls.iloc[0, 0]):
     #deletes the first row
     data_raw = data_raw[1:]
 
-    result_file.write('data_raw created')
+
 #
 #
 elif pd.isna(data_xls.iloc[0, 0]):
-    #creates dataframe 'data_raw' from the .csv-file:
-    data_raw = pd.read_csv('data.csv')                                              
-
+    #creates dataframe 'data_raw' from the .csv-file:                                              
+    data_raw = data_xls.copy()
+    
     #deletes rows with unnecessary information (temp.-values and measurement-data):
     data_raw = data_raw[:-5]
     data_raw = data_raw.iloc[1:]
 
     #brings the dataframe in an optimised form for plotting:
-    data_raw = data_raw.rename(columns={'Unnamed: 0.1': 'Well'})
-    del data_raw['Unnamed: 0']
+    data_raw = data_raw.rename(columns={'Unnamed: 0': 'Well'})
+    #del data_raw['Unnamed: 0']
 
     #deletes the 's' from the time-values:
     for index in range(len(data_raw.columns)):
@@ -1006,9 +1022,9 @@ elif pd.isna(data_xls.iloc[0, 0]):
     #add a '0' for Wells with single digit numbers: 
     for index in range(len(data_raw)):
         
-        if len(data_raw.iloc[index, 0]) == 2:
+        if len(str(data_raw.iloc[index, 0])) == 2:
             
-            string = data_raw.iloc[index, 0]
+            string = str(data_raw.iloc[index, 0])
             string = string[:1] + '0' + string[1:] 
             data_raw.iloc[index, 0] = string
 
@@ -1126,8 +1142,7 @@ if use_linear_area == True:
     
     #creates dataframes from the resulting arrays:
     data = pd.DataFrame(y0_list, columns = ['Well', 'µ_max', 'y0'])
-    
-    result_file.write('µ calculated')
+
 
 #
 #
@@ -1307,12 +1322,6 @@ fici_average = list(np.average(board_fici_values[boards]) for boards in range(le
 ################################################################################
 ## Summarise results in files
 
-if os.path.exists('result.md') == True:
-    os.remove("result.md")
-
-if os.path.exists('formulas.md') == True:
-    os.remove("formulas.md")
-
 #creates copy of dataframe 'data':
 data_results = data.copy()
 
@@ -1398,6 +1407,16 @@ for keys in range(len(checkerboard_dict)):
         #variable that references actual checkerboard from the dictionary
         result_md = checkerboard_dict[actual_key]
 
+        if keys == 0:
+            
+            #creates a file 'result.md' with the command to write data to it:
+            result_file = open("Results.md", "w")
+        
+        elif keys > 0:
+            
+            #creates a file 'result.md' with the command to append data to it:
+            result_file = open("Results.md", "a")
+
         #writes data to the result-file:
         result_file.write('## ')
         result_file.write(actual_key)
@@ -1406,7 +1425,10 @@ for keys in range(len(checkerboard_dict)):
         result_file.write('\n')
         result_file.write(result_md)
         result_file.write('\n\n')
-    
+        
+        #closes the file:
+        result_file.close()
+
 #creates dataframe:
 data_sigmoid_parameters = pd.DataFrame(popt_list, columns = ['Well',
     'Sigmoid-function parameters: L', 'Sigmoid-function parameters: x0', 
@@ -1454,6 +1476,7 @@ sigmoid_formula = 'y = L / (1 + e^(-k * (x - x0))) + n'
 tangent_formula = 'y = m * x + n'
 
 #writes formulas to file:
+result_file = open("Results.md", "a")
 result_file.write('## Parameters of the tangent- and the sigmoid-function of each well\n\n')
 result_file.write('Parameters for the formulars of the tangent- and sigmoid-function of each well.\n')
 result_file.write('The tangent-function is defined as:\n')
@@ -1463,6 +1486,7 @@ result_file.write('The sigmoid-function is defined as:\n')
 result_file.write(sigmoid_formula)
 result_file.write('\n\n')
 result_file.write(formulas_md)
+result_file.close()
 
 
 ################################################################################
@@ -1679,5 +1703,8 @@ else:
             symbolSize = 20,
         )
 
+
+
+
 #save plot:
-plotted.save("Results_diagrams.svg", scale_factor = 5.0)
+plotted.save('Results_diagrams.svg', scale_factor = 5.0)
