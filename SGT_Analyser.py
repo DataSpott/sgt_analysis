@@ -42,7 +42,7 @@ parser.add_argument('--cut_off', help = "Declare an CutOff-value for the SGT-cal
 parser.add_argument('-u','--use_linear_area', help = "Optional flag if you want to determine a linear area for the µ-calculation", action = 'store_true', default = False)
 parser.add_argument('--upper_boundary', help = "OD-value of the upper boundary of the linear area")
 parser.add_argument('--lower_boundary', help = "OD-value of the lower boundary of the linear area")
-parser.add_argument('-o', '--output_directory', help = "Name of the output-directory", default = os. getcwd())
+parser.add_argument('-o', '--output', help = "Name of the output-directory", default = os. getcwd())
 
 #parsing:
 arg = parser.parse_args()
@@ -63,7 +63,7 @@ antibiotic_two_conc = arg.antibiotic_two_conc#[0].split(',')
 input_file = arg.input
 cut_off = float(arg.cut_off)
 use_linear_area = arg.use_linear_area
-output_path = arg.output_directory
+output_path = arg.output
 
 if arg.use_linear_area == True:
 
