@@ -21,6 +21,7 @@ import sys
 import altair_saver
 import selenium
 from scipy.optimize import curve_fit
+from tqdm import tqdm
 
 
 ################################################################################
@@ -42,7 +43,7 @@ parser.add_argument('--cut_off', help = "Declare an CutOff-value for the SGT-cal
 parser.add_argument('-u','--use_linear_area', help = "Optional flag if you want to determine a linear area for the µ-calculation", action = 'store_true', default = False)
 parser.add_argument('--upper_boundary', help = "OD-value of the upper boundary of the linear area")
 parser.add_argument('--lower_boundary', help = "OD-value of the lower boundary of the linear area")
-parser.add_argument('-o', '--output', help = "Name of the output-directory", default = os. getcwd())
+parser.add_argument('-o', '--output', help = "Name of the output-directory", default = os.getcwd())
 
 #parsing:
 arg = parser.parse_args()
@@ -88,7 +89,8 @@ for board in range(checkerboard_nr):
 
 #check if output-directory exists & create a Results-directory in it:
 output_path = str(output_path) + '/SGT_Analysis_Results'
-os.makedirs(output_path, exist_ok=True)
+os.makedirs(output_path, exist_ok = True)
+
 
 ################################################################################
 ## Function-definitions
@@ -742,554 +744,566 @@ def tangent_value_calc(dataframe_one, dataframe_two, actual_well, time_values):
 ## Change working directory if result-files are directed to other directory
 
 #check if output-flag was used:
-if output_path != os. getcwd():
+if output_path != os.getcwd():
         
     #change working directory to the path
     os.chdir(output_path)
 
+
 ################################################################################
 ## Check if parameters fit
 
-#get number of given concentrations for each antibiotic:
-antibiotic_one_conc_count = len(antibiotic_one_conc)
-antibiotic_two_conc_count = len(antibiotic_two_conc)
+for i in tqdm(range(1), desc = 'Checking board'):
+    
 
-letter_list = []
-possible_wells_per_board = []
+    #get number of given concentrations for each antibiotic:
+    antibiotic_one_conc_count = len(antibiotic_one_conc)
+    antibiotic_two_conc_count = len(antibiotic_two_conc)
 
-for boards in range(len(checkerboards)):
-    
-    #get first & last well of the checkerboard:
-    first_well= first_wells[boards].strip()
-    last_well = last_wells[boards].strip()
-    
-    #generate list of all letters used in well-names on the checkerboard:
-    first_well_character_index = int(ord(first_well[0]) - ord('A'))
-    last_well_character_index = int(ord(last_well[0]) - ord('A')) + 1
-    letter_list.append(list(string.ascii_uppercase[first_well_character_index:last_well_character_index]))
-    
-    #generate list of all numbers used in well-names on the checkerboard:
-    first_well_number = int(first_well[1:])
-    last_well_number = int(last_well[1:])
-    step_count = last_well_number - first_well_number + 1
-    number_list = np.linspace(first_well_number, last_well_number, step_count)
-    
-    board_wells = []
-    
-    #generate list of all well-names for the checkerboard:
-    for letter in letter_list[boards]:
-        for number in number_list:
-            if number < 10:
-                possible_well = str(letter) + '0' + str(int(number))
-                board_wells.append(possible_well)
-            
-            else:
-                possible_well = str(letter) + str(int(number))
-                board_wells.append(possible_well)
-    
-    possible_wells_per_board.append(board_wells)
+    letter_list = []
+    possible_wells_per_board = []
 
-possible_well_list = []
-
-#combine all wellsof all checkerboards in one list:
-for sublists in range(len(possible_wells_per_board)):
-    possible_well_list.extend(possible_wells_per_board[sublists])
-
-#sort wells in combined list:
-possible_well_list = sorted(possible_well_list)
-
-well_letter_list = []
-well_number_list = []
-
-for boards in range(len(checkerboards)):
-    
-    #get first & last well of the checkerboard:
-    first_well = checkerboards[boards][1].strip()
-    last_well = checkerboards[boards][2].strip()
-    
-    checkerboard_well_letter_list = []
-    checkerboard_well_number_list = []
-    
-    #check if actual well is within boundaries of the checkerboard:
-    for wells in possible_well_list:
-        if wells[0] >= first_well[0] and wells[0] <= last_well[0]:
-            if wells[1:] >= first_well[1:] and wells[1:] <= last_well[1:]:
+    for boards in range(len(checkerboards)):
+        
+        #get first & last well of the checkerboard:
+        first_well= first_wells[boards].strip()
+        last_well = last_wells[boards].strip()
+        
+        #generate list of all letters used in well-names on the checkerboard:
+        first_well_character_index = int(ord(first_well[0]) - ord('A'))
+        last_well_character_index = int(ord(last_well[0]) - ord('A')) + 1
+        letter_list.append(list(string.ascii_uppercase[first_well_character_index:last_well_character_index]))
+        
+        #generate list of all numbers used in well-names on the checkerboard:
+        first_well_number = int(first_well[1:])
+        last_well_number = int(last_well[1:])
+        step_count = last_well_number - first_well_number + 1
+        number_list = np.linspace(first_well_number, last_well_number, step_count)
+        
+        board_wells = []
+        
+        #generate list of all well-names for the checkerboard:
+        for letter in letter_list[boards]:
+            for number in number_list:
+                if number < 10:
+                    possible_well = str(letter) + '0' + str(int(number))
+                    board_wells.append(possible_well)
                 
-                #get letter and number of the actual well:
-                well_letter = wells[0]
-                well_number = wells[1:]
-                checkerboard_well_letter_list.append(well_letter)
-                checkerboard_well_number_list.append(well_number)
-    
-    #delete duplicates in the lists with the well-name letters and numbers:
-    checkerboard_well_letter_list = list(dict.fromkeys(checkerboard_well_letter_list))
-    checkerboard_well_number_list = list(dict.fromkeys(checkerboard_well_number_list))
-
-    well_letter_list.append(checkerboard_well_letter_list)
-    well_number_list.append(checkerboard_well_number_list)
-
-#check if for both antibiotics the same amount of concentrations was given:
-if antibiotic_one_conc_count != antibiotic_two_conc_count:
-    
-    #if FALSE assign that antibiotic one rises in the rows or columns and antibiotic two in the remaining:
-    if antibiotic_one_conc_count == len(well_letter_list[boards]):
-        antibiotic_rows_name = antibiotic_one_name
-        antibiotic_rows_conc = antibiotic_one_conc
+                else:
+                    possible_well = str(letter) + str(int(number))
+                    board_wells.append(possible_well)
         
-        if antibiotic_two_conc_count == len(well_number_list[boards]):
-            antibiotic_columns_name = antibiotic_two_name
-            antibiotic_columns_conc = antibiotic_two_conc
-            
-            second_block_first_half_done = True
+        possible_wells_per_board.append(board_wells)
 
-        else:
-            print('Number of given concentrations for antibiotic two doesnt´t match the number columns of the checkerboard-layout, when assigning antibiotic one to the rows. Please check your parameters')
+    possible_well_list = []
+
+    #combine all wellsof all checkerboards in one list:
+    for sublists in range(len(possible_wells_per_board)):
+        possible_well_list.extend(possible_wells_per_board[sublists])
+
+    #sort wells in combined list:
+    possible_well_list = sorted(possible_well_list)
+
+    well_letter_list = []
+    well_number_list = []
+
+    for boards in range(len(checkerboards)):
+        
+        #get first & last well of the checkerboard:
+        first_well = checkerboards[boards][1].strip()
+        last_well = checkerboards[boards][2].strip()
+        
+        checkerboard_well_letter_list = []
+        checkerboard_well_number_list = []
+        
+        #check if actual well is within boundaries of the checkerboard:
+        for wells in possible_well_list:
+            if wells[0] >= first_well[0] and wells[0] <= last_well[0]:
+                if wells[1:] >= first_well[1:] and wells[1:] <= last_well[1:]:
+                    
+                    #get letter and number of the actual well:
+                    well_letter = wells[0]
+                    well_number = wells[1:]
+                    checkerboard_well_letter_list.append(well_letter)
+                    checkerboard_well_number_list.append(well_number)
+        
+        #delete duplicates in the lists with the well-name letters and numbers:
+        checkerboard_well_letter_list = list(dict.fromkeys(checkerboard_well_letter_list))
+        checkerboard_well_number_list = list(dict.fromkeys(checkerboard_well_number_list))
+
+        well_letter_list.append(checkerboard_well_letter_list)
+        well_number_list.append(checkerboard_well_number_list)
+
+    #check if for both antibiotics the same amount of concentrations was given:
+    if antibiotic_one_conc_count != antibiotic_two_conc_count:
+        
+        #if FALSE assign that antibiotic one rises in the rows or columns and antibiotic two in the remaining:
+        if antibiotic_one_conc_count == len(well_letter_list[boards]):
+            antibiotic_rows_name = antibiotic_one_name
+            antibiotic_rows_conc = antibiotic_one_conc
+            
+            if antibiotic_two_conc_count == len(well_number_list[boards]):
+                antibiotic_columns_name = antibiotic_two_name
+                antibiotic_columns_conc = antibiotic_two_conc
+                
+                second_block_first_half_done = True
+
+            else:
+                print('Number of given concentrations for antibiotic two doesnt´t match the number columns of the checkerboard-layout, when assigning antibiotic one to the rows. Please check your parameters')
+                
+                second_block_first_half_done = False
+            
+        elif antibiotic_one_conc_count == len(well_number_list[boards]):
+            antibiotic_columns_name = antibiotic_one_name
+            antibiotic_columns_conc = antibiotic_one_conc
+            
+            if antibiotic_two_conc_count == len(well_number_list[boards]):
+                antibiotic_rows_name = antibiotic_two_name
+                antibiotic_rows_conc = antibiotic_two_conc
+                
+                second_block_first_half_done = True
+
+            else:
+                print('Number of given concentrations for antibiotic two doesnt´t match the number of rows of the checkerboard-layout, when assigning antibiotic one to the columns. Please check your parameters.')
+                
+                second_block_first_half_done = False
+
+        elif antibiotic_one_conc_count != len(well_letter_list[boards]) and antibiotic_one_conc_count != len(well_number_list[boards]):
+            print('Number of given concentrations for antibiotic one doesn´t match neither the number of rows nor the number of columns of checkerboard-layout. Please check your parameters.')
             
             second_block_first_half_done = False
+
+    #if TRUE assign that antibiotic one rises in the rows and antibiotic two in the columns:
+    else:
         
-    elif antibiotic_one_conc_count == len(well_number_list[boards]):
-        antibiotic_columns_name = antibiotic_one_name
-        antibiotic_columns_conc = antibiotic_one_conc
-        
-        if antibiotic_two_conc_count == len(well_number_list[boards]):
-            antibiotic_rows_name = antibiotic_two_name
-            antibiotic_rows_conc = antibiotic_two_conc
+        if antibiotic_one_conc_count == len(well_letter_list[boards]):
+            antibiotic_rows_name = antibiotic_one_name
+            antibiotic_rows_conc = antibiotic_one_conc
             
-            second_block_first_half_done = True
+            if antibiotic_two_conc_count == len(well_number_list[boards]):
+                antibiotic_columns_name = antibiotic_two_name
+                antibiotic_columns_conc = antibiotic_two_conc
 
-        else:
-            print('Number of given concentrations for antibiotic two doesnt´t match the number of rows of the checkerboard-layout, when assigning antibiotic one to the columns. Please check your parameters.')
-            
-            second_block_first_half_done = False
+                second_block_first_half_done = True
 
-    elif antibiotic_one_conc_count != len(well_letter_list[boards]) and antibiotic_one_conc_count != len(well_number_list[boards]):
-        print('Number of given concentrations for antibiotic one doesn´t match neither the number of rows nor the number of columns of checkerboard-layout. Please check your parameters.')
-        
-        second_block_first_half_done = False
-
-#if TRUE assign that antibiotic one rises in the rows and antibiotic two in the columns:
-else:
-    
-    if antibiotic_one_conc_count == len(well_letter_list[boards]):
-        antibiotic_rows_name = antibiotic_one_name
-        antibiotic_rows_conc = antibiotic_one_conc
-        
-        if antibiotic_two_conc_count == len(well_number_list[boards]):
-            antibiotic_columns_name = antibiotic_two_name
-            antibiotic_columns_conc = antibiotic_two_conc
-
-            second_block_first_half_done = True
+            else:
+                print('Number of given concentrations of both antibiotics doesn´t match with the given checkerboard-layout. Please check that the number of rows and columns match with the number of given concentrations for each antibiotic.')
+                
+                second_block_first_half_done = False
 
         else:
             print('Number of given concentrations of both antibiotics doesn´t match with the given checkerboard-layout. Please check that the number of rows and columns match with the number of given concentrations for each antibiotic.')
             
             second_block_first_half_done = False
 
-    else:
-        print('Number of given concentrations of both antibiotics doesn´t match with the given checkerboard-layout. Please check that the number of rows and columns match with the number of given concentrations for each antibiotic.')
-        
-        second_block_first_half_done = False
 
 
 ################################################################################
 ## File-conversion
 
-data_xls = pd.read_excel(input_file, sheet_name=0)
+for i in tqdm(range(1), desc = 'Conversion'):
+    data_xls = pd.read_excel(input_file, sheet_name=0)
 
 
 ################################################################################
 ## Parsing and conversion to dataframe
 
-if pd.notna(data_xls.iloc[0, 0]):
-    
-    #initialize list with A-Z and a variable count of numbers:
-    letter_list = list(string.ascii_uppercase)
-    number_list = np.linspace(1, 50, 50)
-
-    #combines the letters with the numbers to get a list of possible well-names:
-    #creates first empty main-array:
-    possible_wells = []
-
-    #primary for-loop over all letters:
-    for letter in letter_list:
-    
-        #secondary for-loop over all numbers:
-        for number in number_list:
+    if pd.notna(data_xls.iloc[0, 0]):
         
-            #combines the acutal letter and number and appends it to main-array:
-            possible_well = letter + str(int(number))
-            possible_wells.append(possible_well)
+        #initialize list with A-Z and a variable count of numbers:
+        letter_list = list(string.ascii_uppercase)
+        number_list = np.linspace(1, 50, 50)
 
-    #variable that references the name of the first column of the dataframe 'data_xls':
-    first_column_name = data_xls.columns[0]
+        #combines the letters with the numbers to get a list of possible well-names:
+        #creates first empty main-array:
+        possible_wells = []
 
-    #creates second empty main-array:
-    well_index_list = []
-
-    #for-loop over all possible wells:
-    for well in possible_wells:
-    
-      #searches the actual possible well in the dataframe 'data_xls' and gets the index:
-      index = data_xls.loc[data_xls[first_column_name] == well, [first_column_name]].index.tolist()
-    
-      #checks if the resulting index is not empty (so that the well was found in the dataframe):
-      if len(index) > 0:
+        #primary for-loop over all letters:
+        for letter in letter_list:
         
-          #if TRUE the well-name and index are attached to the second main-array
-          well_index_list.append([well, index])
-
-    #creates main- and helper-array:
-    time_list = []
-    get_time_list = []
-
-    #extract the time-data from the dataframe in the helper-array: 
-    get_time_list.extend(data_xls.iloc[(int(well_index_list[0][1][0]) + 1), 1:])
-
-    #append helper-array to third main-array:
-    time_list.append(['Well', get_time_list])
-
-    #creates fourth empty main-array:
-    well_values = []
-
-    #for-loop over all wells found in the dataframe:
-    for well in range(len(well_index_list)):
-    
-        #gets the name of the actual well:
-        well_name = well_index_list[well][0]
-    
-        #checks if the number in the well_name is < 10:
-        if int(well_name[1:]) < 10:
+            #secondary for-loop over all numbers:
+            for number in number_list:
             
-            #if TRUE a 0 is added after the letter:
-            well_name = well_name[0] + '0' + well_name[1:]
-    
-        #appends well-name and the corresponding values to the fourth 
-        #main-array:
-        well_values.append([well_name, list(data_xls.iloc[(int(well_index_list[well][1][0]) + 3), 1:].values)])
+                #combines the acutal letter and number and appends it to main-array:
+                possible_well = letter + str(int(number))
+                possible_wells.append(possible_well)
 
-    #extends the list with the time-data with the value-data of the wells:
-    time_list.extend(well_values)
+        #variable that references the name of the first column of the dataframe 'data_xls':
+        first_column_name = data_xls.columns[0]
 
-    #creates empt dictionary:
-    raw_data_dict = {}
+        #creates second empty main-array:
+        well_index_list = []
 
-    #for-loop over all elements in the extended time_list:
-    for times in range(len(time_list)):
-    
-        #sets the well-name (or in case of the time-data the string 'Well') 
-        #as keys for their values in the dicitionary:
-        raw_data_dict[str(time_list[times][0])] = time_list[times][1]
-
-    #creates dataframe 'data_raw' with the dictionary:
-    data_raw = pd.DataFrame(raw_data_dict)
-
-    #transposes the dataframe:
-    data_raw = data_raw.transpose()
-
-    #sets the index to the first column:
-    data_raw.reset_index(level=0, inplace=True)
-
-    #sets the first row as column-names:
-    data_raw.columns = data_raw.iloc[0]
-
-    #deletes the first row
-    data_raw = data_raw[1:]
-
-
-#
-#
-elif pd.isna(data_xls.iloc[0, 0]):
-    #creates dataframe 'data_raw' from the .csv-file:                                              
-    data_raw = data_xls.copy()
-    
-    #deletes rows with unnecessary information (temp.-values and measurement-data):
-    data_raw = data_raw[:-5]
-    data_raw = data_raw.iloc[1:]
-
-    #brings the dataframe in an optimised form for plotting:
-    data_raw = data_raw.rename(columns={'Unnamed: 0': 'Well'})
-    #del data_raw['Unnamed: 0']
-
-    #deletes the 's' from the time-values:
-    for index in range(len(data_raw.columns)):
-        data_raw.columns.values[index] =  data_raw.columns.values[index].replace('s', '')
-
-    #add a '0' for Wells with single digit numbers: 
-    for index in range(len(data_raw)):
+        #for-loop over all possible wells:
+        for well in possible_wells:
         
-        if len(str(data_raw.iloc[index, 0])) == 2:
+          #searches the actual possible well in the dataframe 'data_xls' and gets the index:
+          index = data_xls.loc[data_xls[first_column_name] == well, [first_column_name]].index.tolist()
+        
+          #checks if the resulting index is not empty (so that the well was found in the dataframe):
+          if len(index) > 0:
             
-            string = str(data_raw.iloc[index, 0])
-            string = string[:1] + '0' + string[1:] 
-            data_raw.iloc[index, 0] = string
+              #if TRUE the well-name and index are attached to the second main-array
+              well_index_list.append([well, index])
+
+        #creates main- and helper-array:
+        time_list = []
+        get_time_list = []
+
+        #extract the time-data from the dataframe in the helper-array: 
+        get_time_list.extend(data_xls.iloc[(int(well_index_list[0][1][0]) + 1), 1:])
+
+        #append helper-array to third main-array:
+        time_list.append(['Well', get_time_list])
+
+        #creates fourth empty main-array:
+        well_values = []
+
+        #for-loop over all wells found in the dataframe:
+        for well in range(len(well_index_list)):
+        
+            #gets the name of the actual well:
+            well_name = well_index_list[well][0]
+        
+            #checks if the number in the well_name is < 10:
+            if int(well_name[1:]) < 10:
+                
+                #if TRUE a 0 is added after the letter:
+                well_name = well_name[0] + '0' + well_name[1:]
+        
+            #appends well-name and the corresponding values to the fourth 
+            #main-array:
+            well_values.append([well_name, list(data_xls.iloc[(int(well_index_list[well][1][0]) + 3), 1:].values)])
+
+        #extends the list with the time-data with the value-data of the wells:
+        time_list.extend(well_values)
+
+        #creates empt dictionary:
+        raw_data_dict = {}
+
+        #for-loop over all elements in the extended time_list:
+        for times in range(len(time_list)):
+        
+            #sets the well-name (or in case of the time-data the string 'Well') 
+            #as keys for their values in the dicitionary:
+            raw_data_dict[str(time_list[times][0])] = time_list[times][1]
+
+        #creates dataframe 'data_raw' with the dictionary:
+        data_raw = pd.DataFrame(raw_data_dict)
+
+        #transposes the dataframe:
+        data_raw = data_raw.transpose()
+
+        #sets the index to the first column:
+        data_raw.reset_index(level=0, inplace=True)
+
+        #sets the first row as column-names:
+        data_raw.columns = data_raw.iloc[0]
+
+        #deletes the first row
+        data_raw = data_raw[1:]
+
+
+    #
+    #
+    elif pd.isna(data_xls.iloc[0, 0]):
+        #creates dataframe 'data_raw' from the .csv-file:                                              
+        data_raw = data_xls.copy()
+        
+        #deletes rows with unnecessary information (temp.-values and measurement-data):
+        data_raw = data_raw[:-5]
+        data_raw = data_raw.iloc[1:]
+
+        #brings the dataframe in an optimised form for plotting:
+        data_raw = data_raw.rename(columns={'Unnamed: 0': 'Well'})
+        #del data_raw['Unnamed: 0']
+
+        #deletes the 's' from the time-values:
+        for index in range(len(data_raw.columns)):
+            data_raw.columns.values[index] =  data_raw.columns.values[index].replace('s', '')
+
+        #add a '0' for Wells with single digit numbers: 
+        for index in range(len(data_raw)):
+            
+            if len(str(data_raw.iloc[index, 0])) == 2:
+                
+                string = str(data_raw.iloc[index, 0])
+                string = string[:1] + '0' + string[1:] 
+                data_raw.iloc[index, 0] = string
 
 
 ################################################################################
 ## Wide-to-long-conversion
 
-#melts dataframe 'data_raw' from wide to long form, where Well is an 'ID', 
-#by which specific values (Time & Value) are identified:
-data_melted = pd.melt(data_raw, id_vars = ['Well'], var_name = 'Time', value_name = 'Value')
+    #melts dataframe 'data_raw' from wide to long form, where Well is an 'ID', 
+    #by which specific values (Time & Value) are identified:
+    data_melted = pd.melt(data_raw, id_vars = ['Well'], var_name = 'Time', value_name = 'Value')
 
-#changes data type of the columns 'Time' & 'Value':
-data_melted['Time'] = data_melted['Time'].astype(float)
-data_melted['Value'] = data_melted['Value'].astype(float)
+    #changes data type of the columns 'Time' & 'Value':
+    data_melted['Time'] = data_melted['Time'].astype(float)
+    data_melted['Value'] = data_melted['Value'].astype(float)
 
 
 ################################################################################
 ## Curve-Fitting
 
-#creates list of all wells in dataframe 'data_merged' & deletes duplicates:
-well_plate = list(dict.fromkeys(list(data_melted['Well'])))
+for i in tqdm(range(1), desc = 'Apply curve-fit'):
+    #creates list of all wells in dataframe 'data_merged' & deletes duplicates:
+    well_plate = list(dict.fromkeys(list(data_melted['Well'])))
 
-#calls function 'curve_fit_calc' for every well in well_plate & splits the
-#output to two variables:
-fitted_values, popt_list = map(list, zip(*list(curve_fit_calc(data_melted, well) for well in well_plate)))
+    #calls function 'curve_fit_calc' for every well in well_plate & splits the
+    #output to two variables:
+    fitted_values, popt_list = map(list, zip(*list(curve_fit_calc(data_melted, well) for well in well_plate)))
 
 
 ################################################################################
 ## Creation of second dataframe
 
-fitted_data = []
+    fitted_data = []
 
-#primary for-loop over all fitted values:
-for wells in range(len(fitted_values)):
-    
-    #secondary for-loop over time-values for the actual well: 
-    for position in range(len(fitted_values[wells][1])):
+    #primary for-loop over all fitted values:
+    for wells in range(len(fitted_values)):
         
-        #get well-name, time & fitted value
-        well = fitted_values[wells][0]
-        time = fitted_values[wells][1][position]                                        
-        fitted_y = fitted_values[wells][2][position]
-        
-        fitted_data.append([well, time, fitted_y])
+        #secondary for-loop over time-values for the actual well: 
+        for position in range(len(fitted_values[wells][1])):
+            
+            #get well-name, time & fitted value
+            well = fitted_values[wells][0]
+            time = fitted_values[wells][1][position]                                        
+            fitted_y = fitted_values[wells][2][position]
+            
+            fitted_data.append([well, time, fitted_y])
 
-#creates dataframe 'data_fitted':
-data_fitted = pd.DataFrame(fitted_data, columns = ['Well', 'Time', 'Fitted Value'])
+    #creates dataframe 'data_fitted':
+    data_fitted = pd.DataFrame(fitted_data, columns = ['Well', 'Time', 'Fitted Value'])
 
 
 ################################################################################
 ## Dataframe-merging
 
-#create multiindex 'Well' and 'Time' for dataframe 'data_fitted':
-data_fitted_multiindex = data_fitted.set_index(['Well', 'Time'], drop = True)
+    #create multiindex 'Well' and 'Time' for dataframe 'data_fitted':
+    data_fitted_multiindex = data_fitted.set_index(['Well', 'Time'], drop = True)
 
-#check if dataframe 'data_merged' exist:
-try:
-    data_merged
-except NameError:
-    data_merged_exists = False
-else:
-    data_merged_exists = True
+    #check if dataframe 'data_merged' exist:
+    try:
+        data_merged
+    except NameError:
+        data_merged_exists = False
+    else:
+        data_merged_exists = True
 
-if data_merged_exists == True: 
-    
-    #check if dataframe 'data_merged' already a has a column 'µ_max':
-    if hasattr(data_merged, 'Fitted Value'):
-    
-        #if TRUE delete the column and merge 'data_µ_max' into 'data_merged':
-        del data_merged['Fitted Value']
+    if data_merged_exists == True: 
+        
+        #check if dataframe 'data_merged' already a has a column 'µ_max':
+        if hasattr(data_merged, 'Fitted Value'):
+        
+            #if TRUE delete the column and merge 'data_µ_max' into 'data_merged':
+            del data_merged['Fitted Value']
+            data_merged = data_melted.join(data_fitted_multiindex, on = ['Well', 'Time'])
+
+    #if 'data_merged' doesn´t exist join 'data_µ_max' into 'data_merged':
+    else:
         data_merged = data_melted.join(data_fitted_multiindex, on = ['Well', 'Time'])
-
-#if 'data_merged' doesn´t exist join 'data_µ_max' into 'data_merged':
-else:
-    data_merged = data_melted.join(data_fitted_multiindex, on = ['Well', 'Time'])
 
 
 ################################################################################
 ## µ-calculation & tangent-application
 
-#check if the user want to manually perform the tangent-fitting:
-if use_linear_area == True:
+for i in tqdm(range(1), desc = 'Calculate µ'):
+    #check if the user want to manually perform the tangent-fitting:
+    if use_linear_area == True:
 
-    #gets list of all wells in 'data_merged' & deletes duplicates:
-    well_plate = list(dict.fromkeys(list(data_merged['Well'])))
+        #gets list of all wells in 'data_merged' & deletes duplicates:
+        well_plate = list(dict.fromkeys(list(data_merged['Well'])))
 
-    #calls function 'µ_calc_by_boundaries' for every well in 'well_plate':
-    boundary_values = list(µ_calc_by_boundaries(data_merged, well, upper_boundary, lower_boundary) for well in well_plate)
+        #calls function 'µ_calc_by_boundaries' for every well in 'well_plate':
+        boundary_values = list(µ_calc_by_boundaries(data_merged, well, upper_boundary, lower_boundary) for well in well_plate)
 
-    data_µ_max = pd.DataFrame(boundary_values, columns = ['Well', 'Upper Boundary', 'Time', 'Lower Boundary', 'Lower Time', 'µ_max'])
-    data_µ_max = data_µ_max.filter(items = ('Well', 'Time', 'µ_max'), axis=1)
+        data_µ_max = pd.DataFrame(boundary_values, columns = ['Well', 'Upper Boundary', 'Time', 'Lower Boundary', 'Lower Time', 'µ_max'])
+        data_µ_max = data_µ_max.filter(items = ('Well', 'Time', 'µ_max'), axis=1)
 
-    #create multiindex 'Well' and 'Time' for dataframe 'data_µ_max':
-    data_µ_max_multiindex = data_µ_max.set_index(['Well', 'Time'], drop = True)
+        #create multiindex 'Well' and 'Time' for dataframe 'data_µ_max':
+        data_µ_max_multiindex = data_µ_max.set_index(['Well', 'Time'], drop = True)
 
-    #check if dataframe 'data_merged' already a has a column 'µ_max':
-    if hasattr(data_merged, 'µ_max'):
-    
-        #if TRUE delete the column and merge 'data_µ_max' into 
-        #'data_merged':
-        del data_merged['µ_max']
-        data_merged = data_merged.join(data_µ_max_multiindex, on = ['Well', 'Time'])
+        #check if dataframe 'data_merged' already a has a column 'µ_max':
+        if hasattr(data_merged, 'µ_max'):
+        
+            #if TRUE delete the column and merge 'data_µ_max' into 
+            #'data_merged':
+            del data_merged['µ_max']
+            data_merged = data_merged.join(data_µ_max_multiindex, on = ['Well', 'Time'])
 
-    #if FALSE merge 'data_µ_max' into 'data_merged':
-    else:
-        data_merged = data_merged.join(data_µ_max_multiindex, on = ['Well', 'Time'])
-    
-    #creates an array of all rows from 'data_merged' that match the wells
-    #listed in 'boundary_values' and where 'µ_max' is not 'nan':
-    value_array_from_data_merged = list(data_merged.loc[(data_merged['Well'] == elements[0]) & (pd.notna(data_merged['µ_max'])), :].values[0] for elements in boundary_values)
-    
-    #calls function 'n_calc' for every element in 'value_array_from_data
-    #_merged' & splits output into two lists:
-    y0_list, addition_for_data_merged = map(list, zip(*list(n_calc(array) for array in value_array_from_data_merged)))
-    
-    #creates dataframes from the resulting arrays:
-    data = pd.DataFrame(y0_list, columns = ['Well', 'µ_max', 'y0'])
+        #if FALSE merge 'data_µ_max' into 'data_merged':
+        else:
+            data_merged = data_merged.join(data_µ_max_multiindex, on = ['Well', 'Time'])
+        
+        #creates an array of all rows from 'data_merged' that match the wells
+        #listed in 'boundary_values' and where 'µ_max' is not 'nan':
+        value_array_from_data_merged = list(data_merged.loc[(data_merged['Well'] == elements[0]) & (pd.notna(data_merged['µ_max'])), :].values[0] for elements in boundary_values)
+        
+        #calls function 'n_calc' for every element in 'value_array_from_data
+        #_merged' & splits output into two lists:
+        y0_list, addition_for_data_merged = map(list, zip(*list(n_calc(array) for array in value_array_from_data_merged)))
+        
+        #creates dataframes from the resulting arrays:
+        data = pd.DataFrame(y0_list, columns = ['Well', 'µ_max', 'y0'])
 
 
-#
-#
-#check if the user want to autmatically perform the tangent-fitting:
-if use_linear_area == False:
-    
-    #Wgets list of all wells in 'data_merged' & deletes duplicates:
-    well_plate = list(dict.fromkeys(list(data_merged['Well'])))
+    #
+    #
+    #check if the user want to autmatically perform the tangent-fitting:
+    if use_linear_area == False:
+        
+        #Wgets list of all wells in 'data_merged' & deletes duplicates:
+        well_plate = list(dict.fromkeys(list(data_merged['Well'])))
 
-    #calls function 'µ_calc' for every well in 'well_plate':
-    µ_values = list(µ_calc(data_merged, well) for well in well_plate)
+        #calls function 'µ_calc' for every well in 'well_plate':
+        µ_values = list(µ_calc(data_merged, well) for well in well_plate)
 
-    #calls function 'find_µ_max' for every array in 'µ_values':
-    µ_max_list = list(find_µ_max(array) for array in µ_values)
+        #calls function 'find_µ_max' for every array in 'µ_values':
+        µ_max_list = list(find_µ_max(array) for array in µ_values)
 
-    #set Pandas display-precision to show 3 decimal places:
-    pd.set_option('display.precision', 3)
+        #set Pandas display-precision to show 3 decimal places:
+        pd.set_option('display.precision', 3)
 
-    #create a dataframe from the resulting array:
-    data_µ_max = pd.DataFrame(µ_max_list, columns = ['Well', 'Time', 'µ_max'])
+        #create a dataframe from the resulting array:
+        data_µ_max = pd.DataFrame(µ_max_list, columns = ['Well', 'Time', 'µ_max'])
 
-    #create multiindex 'Well' and 'Time' for dataframe 'data_µ_max':
-    data_µ_max_multiindex = data_µ_max.set_index(['Well', 'Time'], drop = True)
+        #create multiindex 'Well' and 'Time' for dataframe 'data_µ_max':
+        data_µ_max_multiindex = data_µ_max.set_index(['Well', 'Time'], drop = True)
 
-    #check if dataframe 'data_merged' already a has a column 'µ_max':
-    if hasattr(data_merged, 'µ_max'):
-    
-        #if TRUE delete the column and merge 'data_µ_max' into 
-        #'data_merged':
-        del data_merged['µ_max']
-        data_merged = data_merged.join(data_µ_max_multiindex, on = ['Well', 'Time'])
+        #check if dataframe 'data_merged' already a has a column 'µ_max':
+        if hasattr(data_merged, 'µ_max'):
+        
+            #if TRUE delete the column and merge 'data_µ_max' into 
+            #'data_merged':
+            del data_merged['µ_max']
+            data_merged = data_merged.join(data_µ_max_multiindex, on = ['Well', 'Time'])
 
-    #if FALSE merge 'data_µ_max' into 'data_merged':
-    else:
-        data_merged = data_merged.join(data_µ_max_multiindex, on = ['Well', 'Time'])
+        #if FALSE merge 'data_µ_max' into 'data_merged':
+        else:
+            data_merged = data_merged.join(data_µ_max_multiindex, on = ['Well', 'Time'])
 
-    #creates an array of all rows from 'data_merged' that match the wells
-    #listed in 'boundary_values' and where 'µ_max' is not 'nan':
-    value_array_from_data_merged = list(data_merged.loc[(data_merged['Well'] == elements[0]) & (pd.notna(data_merged['µ_max'])), :].values[0] for elements in µ_max_list)
+        #creates an array of all rows from 'data_merged' that match the wells
+        #listed in 'boundary_values' and where 'µ_max' is not 'nan':
+        value_array_from_data_merged = list(data_merged.loc[(data_merged['Well'] == elements[0]) & (pd.notna(data_merged['µ_max'])), :].values[0] for elements in µ_max_list)
 
-    #calls function 'n_calc' for every element in 'value_array_from_data
-    #_merged' & splits output into two lists:
-    y0_list, unneeded_list = map(list, zip(*list(n_calc(elements) for elements in value_array_from_data_merged)))
+        #calls function 'n_calc' for every element in 'value_array_from_data
+        #_merged' & splits output into two lists:
+        y0_list, unneeded_list = map(list, zip(*list(n_calc(elements) for elements in value_array_from_data_merged)))
 
-    #create dataframe from the resulting array:
-    data = pd.DataFrame(y0_list, columns = ['Well', 'µ_max', 'y0'])
+        #create dataframe from the resulting array:
+        data = pd.DataFrame(y0_list, columns = ['Well', 'µ_max', 'y0'])
 
 
 ################################################################################
 ## SGT-calculation
 
-#get row-count of dataframe 'data':
-row_count = data.shape[0]
+for i in tqdm(range(1), desc = 'Calculate SGT'):
+    #get row-count of dataframe 'data':
+    row_count = data.shape[0]
 
-#calls function 'SGT_calc' for every row in 'row_count':
-SGT_values = list(SGT_calc(data, rows, cut_off) for rows in range(row_count))
+    #calls function 'SGT_calc' for every row in 'row_count':
+    SGT_values = list(SGT_calc(data, rows, cut_off) for rows in range(row_count))
 
-#applies values from 'SGT_values' to dataframe 'data':
-for row in range(row_count):
-    
-    data.loc[row, 'SGT'] = SGT_values[row]
+    #applies values from 'SGT_values' to dataframe 'data':
+    for row in range(row_count):
+        
+        data.loc[row, 'SGT'] = SGT_values[row]
 
 
 ################################################################################
 ## log-level-reduction calculation
 
-#calls function 'board_iteration' for every checkerboard:
-calculated_values = list(board_iteration(data, antibiotic_rows_conc, 
-                          antibiotic_columns_conc, checkerboards, boards, 
-                          checkerboard_nr) for boards in range(len(checkerboards)))
+for i in tqdm(range(1), desc = 'Calculate log-level-reduction'):
+    #calls function 'board_iteration' for every checkerboard:
+    calculated_values = list(board_iteration(data, antibiotic_rows_conc, 
+                              antibiotic_columns_conc, checkerboards, boards, 
+                              checkerboard_nr) for boards in range(len(checkerboards)))
 
-#join nested lists to one list:
-calculated_values = [inner for outer in calculated_values for inner in outer]
+    #join nested lists to one list:
+    calculated_values = [inner for outer in calculated_values for inner in outer]
 
-#creates dataframe from calculated data:
-data_calculated_values = pd.DataFrame(calculated_values, columns = ['Well',
-    'SGT minus control', 'log-level-reduction',
-    (antibiotic_rows_name + '-concentration'),
-    (antibiotic_columns_name + '-concentration')])
+    #creates dataframe from calculated data:
+    data_calculated_values = pd.DataFrame(calculated_values, columns = ['Well',
+        'SGT minus control', 'log-level-reduction',
+        (antibiotic_rows_name + '-concentration'),
+        (antibiotic_columns_name + '-concentration')])
 
 
 ################################################################################
 ## Dataframe-merging
 
-#create index 'Well' for dataframe 'data_calculated_values':
-data_calculated_values_index = data_calculated_values.set_index(['Well'], drop = True)
+    #create index 'Well' for dataframe 'data_calculated_values':
+    data_calculated_values_index = data_calculated_values.set_index(['Well'], drop = True)
 
-first_antibiotic_column = str(antibiotic_rows_name + '-concentration')
-second_antibiotic_column = str(antibiotic_columns_name + '-concentration')
+    first_antibiotic_column = str(antibiotic_rows_name + '-concentration')
+    second_antibiotic_column = str(antibiotic_columns_name + '-concentration')
 
-#check if dataframe 'data' already has the columns from dataframe 'data_calculated_values'
-#if TRUE delete the columns and merge 'data_calculated_values' into 'data':
-if hasattr(data, 'SGT minus control'):
-    del data['SGT minus control']
-    
-    if hasattr(data, 'log-level-reduction'):
-        del data['log-level-reduction']
+    #check if dataframe 'data' already has the columns from dataframe 'data_calculated_values'
+    #if TRUE delete the columns and merge 'data_calculated_values' into 'data':
+    if hasattr(data, 'SGT minus control'):
+        del data['SGT minus control']
         
-        if hasattr(data, first_antibiotic_column):
-            del data[first_antibiotic_column]
+        if hasattr(data, 'log-level-reduction'):
+            del data['log-level-reduction']
             
-            if hasattr(data, second_antibiotic_column):
-                del data[second_antibiotic_column]
-                data = data.merge(data_calculated_values_index, on = ['Well'])
-            
+            if hasattr(data, first_antibiotic_column):
+                del data[first_antibiotic_column]
+                
+                if hasattr(data, second_antibiotic_column):
+                    del data[second_antibiotic_column]
+                    data = data.merge(data_calculated_values_index, on = ['Well'])
+                
+                else:
+                    data = data.merge(data_calculated_values_index, on = ['Well'])
             else:
                 data = data.merge(data_calculated_values_index, on = ['Well'])
         else:
             data = data.merge(data_calculated_values_index, on = ['Well'])
+
+    #if FALSE merge 'data_calculated_values' into 'data':
     else:
         data = data.merge(data_calculated_values_index, on = ['Well'])
-
-#if FALSE merge 'data_calculated_values' into 'data':
-else:
-    data = data.merge(data_calculated_values_index, on = ['Well'])
 
 
 ################################################################################
 ## Determination of BBC-Wells
 
-#calls function 'BBC_determination_per_board' for every checkerboard &
-#splits output into two lists:
-first_antibiotic_bbcs, second_antibiotic_bbcs = map(list, zip(*list(BBC_determination_per_board(data, checkerboards, boards) for boards in range(len(checkerboards)))))
+for i in tqdm(range(1), desc = 'Determine BBC-wells'):
+    #calls function 'BBC_determination_per_board' for every checkerboard &
+    #splits output into two lists:
+    first_antibiotic_bbcs, second_antibiotic_bbcs = map(list, zip(*list(BBC_determination_per_board(data, checkerboards, boards) for boards in range(len(checkerboards)))))
 
-#appends the first element of every nested list in the 'first/second_
-#antibiotic_bbcs'-list to a new list:
-first_antibiotic_first_bbc = list(elements[0] for elements in first_antibiotic_bbcs)
-second_antibiotic_first_bbc = list(elements[0] for elements in second_antibiotic_bbcs)
+    #appends the first element of every nested list in the 'first/second_
+    #antibiotic_bbcs'-list to a new list:
+    first_antibiotic_first_bbc = list(elements[0] for elements in first_antibiotic_bbcs)
+    second_antibiotic_first_bbc = list(elements[0] for elements in second_antibiotic_bbcs)
 
 
 ################################################################################
 ## Determination of synergism
 
-#calls function 'fici_values_per_board_calc' for every checkerboard:
-fici_values = list(fici_values_per_board_calc(data, checkerboards, boards, 
-                                              first_antibiotic_first_bbc,
-                                              second_antibiotic_first_bbc,
-                                              first_antibiotic_column,
-                                              second_antibiotic_column
-                                              ) for boards in range(len(checkerboards)))
+for i in tqdm(range(1), desc = 'Determine synergism'):
+    #calls function 'fici_values_per_board_calc' for every checkerboard:
+    fici_values = list(fici_values_per_board_calc(data, checkerboards, boards, 
+                                                  first_antibiotic_first_bbc,
+                                                  second_antibiotic_first_bbc,
+                                                  first_antibiotic_column,
+                                                  second_antibiotic_column
+                                                  ) for boards in range(len(checkerboards)))
 
 
 ################################################################################
 ## Then from this wells the first of each row and column are identified.
 
-#get a list of all wells in dataframe 'data':
-plate_wells = data['Well'].values
+    #get a list of all wells in dataframe 'data':
+    plate_wells = data['Well'].values
 
-#calls function 'first_well_identifier' for each checkerboard:
-first_wells_in_rows_and_columns = list(first_well_identifier(checkerboards,
-                                        boards, fici_values) for boards in 
-                                        range(len(checkerboards)))
+    #calls function 'first_well_identifier' for each checkerboard:
+    first_wells_in_rows_and_columns = list(first_well_identifier(checkerboards,
+                                            boards, fici_values) for boards in 
+                                            range(len(checkerboards)))
 
 
 ################################################################################
@@ -1297,409 +1311,408 @@ first_wells_in_rows_and_columns = list(first_well_identifier(checkerboards,
 ## the FICI-values is determined, which allows a statement about an possible 
 ## synergism between the two antibiotics.
 
-#calls function 'FICI_finder_per_board' for every checkerboard:
-fici_values_with_well_per_board = list(FICI_finder_per_board(boards, fici_values, first_wells_in_rows_and_columns) for boards in range(len(checkerboards)))
+    #calls function 'FICI_finder_per_board' for every checkerboard:
+    fici_values_with_well_per_board = list(FICI_finder_per_board(boards, fici_values, first_wells_in_rows_and_columns) for boards in range(len(checkerboards)))
 
-#merges the nested lists in 'fici_values_with_well_per_board':
-fici_values_with_well = list(inner for outer in fici_values_with_well_per_board for inner in outer)
+    #merges the nested lists in 'fici_values_with_well_per_board':
+    fici_values_with_well = list(inner for outer in fici_values_with_well_per_board for inner in outer)
 
-#creates dataframe 'data_fici_values' from 'fici_values_with_well':
-data_fici_values = pd.DataFrame(fici_values_with_well, columns = ['Well', 'FICI-Value'])
+    #creates dataframe 'data_fici_values' from 'fici_values_with_well':
+    data_fici_values = pd.DataFrame(fici_values_with_well, columns = ['Well', 'FICI-Value'])
 
-#calls function 'append_FICI_values_to_board' for every checkerboard:
-board_fici_values = list(append_FICI_values_to_board(fici_values_with_well_per_board, boards) for boards in range(len(checkerboards)))    
+    #calls function 'append_FICI_values_to_board' for every checkerboard:
+    board_fici_values = list(append_FICI_values_to_board(fici_values_with_well_per_board, boards) for boards in range(len(checkerboards)))    
 
-#computes the average of the fici-values of the first wells in all rows and
-#columns of the checkerboard:
-fici_average = list(np.average(board_fici_values[boards]) for boards in range(len(checkerboards)))
+    #computes the average of the fici-values of the first wells in all rows and
+    #columns of the checkerboard:
+    fici_average = list(np.average(board_fici_values[boards]) for boards in range(len(checkerboards)))
 
 
 ################################################################################
 ## Summarise results in files
 
-#creates copy of dataframe 'data':
-data_results = data.copy()
+for i in tqdm(range(1), desc = 'Summarise results'):
+    #creates copy of dataframe 'data':
+    data_results = data.copy()
 
-#checks if the new dataframe contains the columns 'µ_max' & 'y0' & deletes
-#them if TRUE:
-if hasattr(data_results, 'µ_max'):
-    del data_results['µ_max']
-    
-    if hasattr(data_results, 'y0'):
-        del data_results['y0']
-
-#reorders the columns of the dataframe:
-data_results_columns = list(data_results.columns)
-new_columns_order = [data_results_columns[0], data_results_columns[-2], data_results_columns[-1]]
-new_columns_order.extend(data_results_columns[1:-2])
-data_results = data_results[new_columns_order]
-
-checkerboard_dict = {}
-
-row_count = data_results.shape[0]
-
-#for-loop over all checkerboards:
-for boards in range(len(checkerboards)):
-
-    #initialize data for if-conditions:
-    first_well = str(checkerboards[boards][1]).strip()
-    last_well = str(checkerboards[boards][2]).strip()
-
-    well_list = []
-    
-    #for-loop over all wells in dataframe 'data_results':
-    for rows in range(row_count):
+    #checks if the new dataframe contains the columns 'µ_max' & 'y0' & deletes
+    #them if TRUE:
+    if hasattr(data_results, 'µ_max'):
+        del data_results['µ_max']
         
-        #get name of the specific well:
-        well_name = str(data_results.iat[rows, 0])
-        
-        #check if well is within the limits of the checkerboard and 
-        #accomplishs the log-level-reduction:
-        if well_name[0] >= first_well[0] and well_name[0] <= last_well[0]:
-            if well_name[1:] >= first_well[1:] and well_name[1:] <= last_well[1:]:
+        if hasattr(data_results, 'y0'):
+            del data_results['y0']
 
-                well_list.append(well_name)
+    #reorders the columns of the dataframe:
+    data_results_columns = list(data_results.columns)
+    new_columns_order = [data_results_columns[0], data_results_columns[-2], data_results_columns[-1]]
+    new_columns_order.extend(data_results_columns[1:-2])
+    data_results = data_results[new_columns_order]
+
+    checkerboard_dict = {}
+
+    row_count = data_results.shape[0]
+
+    #for-loop over all checkerboards:
+    for boards in range(len(checkerboards)):
+
+        #initialize data for if-conditions:
+        first_well = str(checkerboards[boards][1]).strip()
+        last_well = str(checkerboards[boards][2]).strip()
+
+        well_list = []
         
-        elif well_name[0] <= first_well[0] or well_name[0] >= last_well[0]:
-            if well_name[1:] >= first_well[1:] and well_name[1:] <= last_well[1:]:
+        #for-loop over all wells in dataframe 'data_results':
+        for rows in range(row_count):
+            
+            #get name of the specific well:
+            well_name = str(data_results.iat[rows, 0])
+            
+            #check if well is within the limits of the checkerboard and 
+            #accomplishs the log-level-reduction:
+            if well_name[0] >= first_well[0] and well_name[0] <= last_well[0]:
+                if well_name[1:] >= first_well[1:] and well_name[1:] <= last_well[1:]:
+
+                    well_list.append(well_name)
+            
+            elif well_name[0] <= first_well[0] or well_name[0] >= last_well[0]:
+                if well_name[1:] >= first_well[1:] and well_name[1:] <= last_well[1:]:
+                    
+                    well_list.append(well_name)
+            
+            elif well_name[1:] <= first_well[1:] or well_name[1:] >= last_well[1:]:
+                if well_name[0] >= first_well[0] or well_name[0] <= last_well[0]:
+                    
+                    well_list.append(well_name)
+        
+        #creates copy of dataframe 'data_results':
+        data_results_copy = data_results.copy()
+
+        #gets actual index + 1:
+        boards_index = (boards + 1)
+        
+        #checks if the index is < 10:
+        if boards_index < 10:
+            
+            #if TRUE a 0 is added in front of the index & the so numbered 
+            #checkerboard is used as key in the dicitionary which references 
+            #the dataframe 'data_results_copy' without all rows whose well 
+            #wasn´t in well_list. Sets the column with the well-names as index:
+            checkerboard_dict["Checkerboard_0{0}".format(boards_index)] = data_results_copy.drop(data_results_copy[data_results_copy.Well.isin(well_list) == False].index).set_index('Well', drop = True).to_markdown()
+        
+        elif boards_index >= 10:
+            
+            #if FALSE the  Checkerboard is just numbered with the index & 
+            #used as key in the dicitionary which references the dataframe 
+            #'data_results_copy' without all rows whose well wasn´t in 
+            #well_list. Sets the column with the well-names as index:
+            checkerboard_dict["Checkerboard_{0}".format(boards_index)] = data_results_copy.drop(data_results_copy[data_results_copy.Well.isin(well_list) == False].index).set_index('Well', drop = True).to_markdown()
+
+    #displays the actual key (= Checkerboard-number) & the corresponding 
+    #value (= dataframe) of the dictionary:
+    for keys in range(len(checkerboard_dict)):
+        
+            actual_key = list(checkerboard_dict)[keys]
+
+            #variable that references actual checkerboard from the dictionary
+            result_md = checkerboard_dict[actual_key]
+
+            if keys == 0:
                 
-                well_list.append(well_name)
-        
-        elif well_name[1:] <= first_well[1:] or well_name[1:] >= last_well[1:]:
-            if well_name[0] >= first_well[0] or well_name[0] <= last_well[0]:
+                #creates a file 'result.md' with the command to write data to it:
+                result_file = open("Results.md", "w")
+            
+            elif keys > 0:
                 
-                well_list.append(well_name)
-    
-    #creates copy of dataframe 'data_results':
-    data_results_copy = data_results.copy()
+                #creates a file 'result.md' with the command to append data to it:
+                result_file = open("Results.md", "a")
 
-    #gets actual index + 1:
-    boards_index = (boards + 1)
-    
-    #checks if the index is < 10:
-    if boards_index < 10:
-        
-        #if TRUE a 0 is added in front of the index & the so numbered 
-        #checkerboard is used as key in the dicitionary which references 
-        #the dataframe 'data_results_copy' without all rows whose well 
-        #wasn´t in well_list. Sets the column with the well-names as index:
-        checkerboard_dict["Checkerboard_0{0}".format(boards_index)] = data_results_copy.drop(data_results_copy[data_results_copy.Well.isin(well_list) == False].index).set_index('Well', drop = True).to_markdown()
-    
-    elif boards_index >= 10:
-        
-        #if FALSE the  Checkerboard is just numbered with the index & 
-        #used as key in the dicitionary which references the dataframe 
-        #'data_results_copy' without all rows whose well wasn´t in 
-        #well_list. Sets the column with the well-names as index:
-        checkerboard_dict["Checkerboard_{0}".format(boards_index)] = data_results_copy.drop(data_results_copy[data_results_copy.Well.isin(well_list) == False].index).set_index('Well', drop = True).to_markdown()
-
-#displays the actual key (= Checkerboard-number) & the corresponding 
-#value (= dataframe) of the dictionary:
-for keys in range(len(checkerboard_dict)):
-    
-        actual_key = list(checkerboard_dict)[keys]
-    
-        #variable that references actual checkerboard from the dictionary
-        result_md = checkerboard_dict[actual_key]
-
-        if keys == 0:
+            #writes data to the result-file:
+            result_file.write('## ')
+            result_file.write(actual_key)
+            result_file.write('\nThe average FICI-value of the Checkerboard is:  ')
+            result_file.write(str(fici_average[keys]))
+            result_file.write('\n')
+            result_file.write(result_md)
+            result_file.write('\n\n')
             
-            #creates a file 'result.md' with the command to write data to it:
-            result_file = open("Results.md", "w")
+            #closes the file:
+            result_file.close()
+
+    #creates dataframe:
+    data_sigmoid_parameters = pd.DataFrame(popt_list, columns = ['Well',
+        'Sigmoid-function parameters: L', 'Sigmoid-function parameters: x0', 
+        'Sigmoid-function parameters: k', 'Sigmoid-function parameters: n'])
+
+    #copies dataframe 'data':
+    data_formulas = data.copy()
+
+    #deletes unneeded columns and merges the dataframes:
+    del data_formulas['SGT minus control']
+    del data_formulas['log-level-reduction']
+    del data_formulas['Nitroxolin-concentration']
+    del data_formulas['Dalbavancin-concentration']
+
+    if hasattr(data_formulas, 'Sigmoid-function parameters: L'):
+        del data_formulas['Sigmoid-function parameters: L']
         
-        elif keys > 0:
+        if hasattr(data, 'Sigmoid-function parameters: x0'):
+            del data['Sigmoid-function parameters: x0']
             
-            #creates a file 'result.md' with the command to append data to it:
-            result_file = open("Results.md", "a")
-
-        #writes data to the result-file:
-        result_file.write('## ')
-        result_file.write(actual_key)
-        result_file.write('\nThe average FICI-value of the Checkerboard is:  ')
-        result_file.write(str(fici_average[boards]))
-        result_file.write('\n')
-        result_file.write(result_md)
-        result_file.write('\n\n')
-        
-        #closes the file:
-        result_file.close()
-
-#creates dataframe:
-data_sigmoid_parameters = pd.DataFrame(popt_list, columns = ['Well',
-    'Sigmoid-function parameters: L', 'Sigmoid-function parameters: x0', 
-    'Sigmoid-function parameters: k', 'Sigmoid-function parameters: n'])
-
-#copies dataframe 'data':
-data_formulas = data.copy()
-
-#deletes unneeded columns and merges the dataframes:
-del data_formulas['SGT minus control']
-del data_formulas['log-level-reduction']
-del data_formulas['Nitroxolin-concentration']
-del data_formulas['Dalbavancin-concentration']
-
-if hasattr(data_formulas, 'Sigmoid-function parameters: L'):
-    del data_formulas['Sigmoid-function parameters: L']
-    
-    if hasattr(data, 'Sigmoid-function parameters: x0'):
-        del data['Sigmoid-function parameters: x0']
-        
-        if hasattr(data_formulas, 'Sigmoid-function parameters: k'):
-            del data_formulas['Sigmoid-function parameters: k']
-            
-            if hasattr(data_formulas, 'Sigmoid-function parameters: n'):
-                del data_formulas['Sigmoid-function parameters: n']
-                data_formulas = data_formulas.merge(data_sigmoid_parameters, on = ['Well'])
-            
+            if hasattr(data_formulas, 'Sigmoid-function parameters: k'):
+                del data_formulas['Sigmoid-function parameters: k']
+                
+                if hasattr(data_formulas, 'Sigmoid-function parameters: n'):
+                    del data_formulas['Sigmoid-function parameters: n']
+                    data_formulas = data_formulas.merge(data_sigmoid_parameters, on = ['Well'])
+                
+                else:
+                    data_formulas = data_formulas.merge(data_sigmoid_parameters, on = ['Well'])
             else:
                 data_formulas = data_formulas.merge(data_sigmoid_parameters, on = ['Well'])
         else:
             data_formulas = data_formulas.merge(data_sigmoid_parameters, on = ['Well'])
+
     else:
         data_formulas = data_formulas.merge(data_sigmoid_parameters, on = ['Well'])
 
-else:
-    data_formulas = data_formulas.merge(data_sigmoid_parameters, on = ['Well'])
+    #sets column 'Well' as index & renames columns:
+    data_formulas = data_formulas.set_index('Well', drop = True)
+    data_formulas = data_formulas.rename(columns={'µ_max' : 'm', 'y0' : 'n'})
 
-#sets column 'Well' as index & renames columns:
-data_formulas = data_formulas.set_index('Well', drop = True)
-data_formulas = data_formulas.rename(columns={'µ_max' : 'm', 'y0' : 'n'})
+    formulas_md = data_formulas.to_markdown()
 
-formulas_md = data_formulas.to_markdown()
+    sigmoid_formula = 'y = L / (1 + e^(-k * (x - x0))) + n'
+    tangent_formula = 'y = m * x + n'
 
-sigmoid_formula = 'y = L / (1 + e^(-k * (x - x0))) + n'
-tangent_formula = 'y = m * x + n'
-
-#writes formulas to file:
-result_file = open("Results.md", "a")
-result_file.write('## Parameters of the tangent- and the sigmoid-function of each well\n\n')
-result_file.write('Parameters for the formulars of the tangent- and sigmoid-function of each well.\n')
-result_file.write('The tangent-function is defined as:\n')
-result_file.write(tangent_formula)
-result_file.write('\n\n')
-result_file.write('The sigmoid-function is defined as:\n')
-result_file.write(sigmoid_formula)
-result_file.write('\n\n')
-result_file.write(formulas_md)
-result_file.close()
+    #writes formulas to file:
+    result_file = open("Results.md", "a")
+    result_file.write('## Parameters of the tangent- and the sigmoid-function of each well\n\n')
+    result_file.write('Parameters for the formulars of the tangent- and sigmoid-function of each well.\n')
+    result_file.write('The tangent-function is defined as:\n')
+    result_file.write(tangent_formula)
+    result_file.write('\n\n')
+    result_file.write('The sigmoid-function is defined as:\n')
+    result_file.write(sigmoid_formula)
+    result_file.write('\n\n')
+    result_file.write(formulas_md)
+    result_file.close()
 
 
 ################################################################################
-## Plott resulting data
+## Plot resulting data
 
-#get copy of dataframe 'data_merged':
-data_results_plot = data_merged.copy()
+for i in tqdm(range(1), desc = 'Creating diagramms'):
+    #get copy of dataframe 'data_merged':
+    data_results_plot = data_merged.copy()
 
-#create lists of all wells & time-values & delete duplicates:
-time_values = list(dict.fromkeys(data_results_plot['Time'].values))
-well_list = list(dict.fromkeys(data_results_plot['Well'].values))
+    #create lists of all wells & time-values & delete duplicates:
+    time_values = list(dict.fromkeys(data_results_plot['Time'].values))
+    well_list = list(dict.fromkeys(data_results_plot['Well'].values))
 
-#calls the function 'tangent_value_calc' for every well in 'well_plate':
-tangent_values = list(tangent_value_calc(data, data_results_plot, well, time_values) for well in well_plate)
+    #calls the function 'tangent_value_calc' for every well in 'well_plate':
+    tangent_values = list(tangent_value_calc(data, data_results_plot, well, time_values) for well in well_plate)
 
-#joins the nested lists in 'tangent_values':
-tangent_values = [inner for outer in tangent_values for inner in outer]
+    #joins the nested lists in 'tangent_values':
+    tangent_values = [inner for outer in tangent_values for inner in outer]
 
-#creates dataframe from 'tangent_values':
-data_tangent_values = pd.DataFrame(tangent_values, columns = ['Well', 'Time', 'Tangent y-value'])
+    #creates dataframe from 'tangent_values':
+    data_tangent_values = pd.DataFrame(tangent_values, columns = ['Well', 'Time', 'Tangent y-value'])
 
-#creates multiindex on 'Well' & 'Time' for dataframe 'data_tangent_values':
-data_tangent_values_multiindex = data_tangent_values.set_index(['Well', 'Time'], drop = True)
+    #creates multiindex on 'Well' & 'Time' for dataframe 'data_tangent_values':
+    data_tangent_values_multiindex = data_tangent_values.set_index(['Well', 'Time'], drop = True)
 
-#checks if 'data_results_plot' already has column 'Tangent y_value':
-if hasattr(data_results_plot, 'Tangent y-value'):
-    
-    #if TRUE delete the column & merge 'data_tangent_values_multiindex'
-    #into 'data_results_plot':
-    del data_results_plot['Tangent y-value']
-    data_resutls_plot = data_results_plot.merge(data_tangent_values_multiindex, on = ['Well', 'Time'])
+    #checks if 'data_results_plot' already has column 'Tangent y_value':
+    if hasattr(data_results_plot, 'Tangent y-value'):
+        
+        #if TRUE delete the column & merge 'data_tangent_values_multiindex'
+        #into 'data_results_plot':
+        del data_results_plot['Tangent y-value']
+        data_resutls_plot = data_results_plot.merge(data_tangent_values_multiindex, on = ['Well', 'Time'])
 
-#if FALSE just merge both dataframes:
-else:
-    data_results_plot = data_results_plot.merge(data_tangent_values_multiindex, on = ['Well', 'Time'])
+    #if FALSE just merge both dataframes:
+    else:
+        data_results_plot = data_results_plot.merge(data_tangent_values_multiindex, on = ['Well', 'Time'])
 
-#if linear area is used append the upper & lower boundary y_value to
-#dataframe 'data_results_plot':
-if use_linear_area == True:
-    data_results_plot.loc[:, 'Upper Boundary'] = upper_boundary
-    data_results_plot.loc[:, 'Lower Boundary'] = lower_boundary
+    #if linear area is used append the upper & lower boundary y_value to
+    #dataframe 'data_results_plot':
+    if use_linear_area == True:
+        data_results_plot.loc[:, 'Upper Boundary'] = upper_boundary
+        data_results_plot.loc[:, 'Lower Boundary'] = lower_boundary
 
-#get list of all wells in 'data_results_plot':
-plate_wells = list(data_results_plot['Well'])
+    #get list of all wells in 'data_results_plot':
+    plate_wells = list(data_results_plot['Well'])
 
-#get list of all numbers used in well-names in 'data_results_plot':
-well_numbers = list(dict.fromkeys([wells[1:] for wells in plate_wells]))
+    #get list of all numbers used in well-names in 'data_results_plot':
+    well_numbers = list(dict.fromkeys([wells[1:] for wells in plate_wells]))
 
-#set number of columns in which subplots shall be displayed:
-plot_columns = int(max(well_numbers))
+    #set number of columns in which subplots shall be displayed:
+    plot_columns = int(max(well_numbers))
 
-#transform dataframe 'data_results_plot' into long-form:
-if use_linear_area == True:
-    
-    data_results_plot_upper = data_results_plot.filter(items = 
-                            ('Well', 'Time', 'Upper Boundary'), axis=1)
-    data_results_plot_upper.loc[:, 'Source'] = 'upper boundary'
-
-
-    data_results_plot_lower = data_results_plot.filter(items = 
-                            ('Well', 'Time', 'Lower Boundary'), axis=1)
-    data_results_plot_lower.loc[:, 'Source'] = 'lower boundary'
+    #transform dataframe 'data_results_plot' into long-form:
+    if use_linear_area == True:
+        
+        data_results_plot_upper = data_results_plot.filter(items = 
+                                ('Well', 'Time', 'Upper Boundary'), axis=1)
+        data_results_plot_upper.loc[:, 'Source'] = 'upper boundary'
 
 
-data_results_plot_fitted = data_results_plot.filter(items = 
-                            ('Well', 'Time', 'Fitted Value'), axis=1)
-data_results_plot_fitted.loc[:, 'Source'] = 'fitted data'
+        data_results_plot_lower = data_results_plot.filter(items = 
+                                ('Well', 'Time', 'Lower Boundary'), axis=1)
+        data_results_plot_lower.loc[:, 'Source'] = 'lower boundary'
 
 
-data_results_plot_tangent = data_results_plot.filter(items = 
-                            ('Well', 'Time', 'Tangent y-value'), axis=1)
-data_results_plot_tangent.loc[:, 'Source'] = 'tangent'
+    data_results_plot_fitted = data_results_plot.filter(items = 
+                                ('Well', 'Time', 'Fitted Value'), axis=1)
+    data_results_plot_fitted.loc[:, 'Source'] = 'fitted data'
 
 
-data_results_plot_µ_max = data_results_plot.filter(items = 
-                            ('Well', 'Time', 'µ_max corresponding Value')
-                            , axis=1)
-data_results_plot_µ_max.loc[:, 'Source'] = 'µ_max'
+    data_results_plot_tangent = data_results_plot.filter(items = 
+                                ('Well', 'Time', 'Tangent y-value'), axis=1)
+    data_results_plot_tangent.loc[:, 'Source'] = 'tangent'
 
 
-data_results_plot = data_results_plot.filter(items = 
-                    ('Well', 'Time', 'Value'), axis=1)
-data_results_plot.loc[:, 'Source'] = 'raw data'
+    data_results_plot_µ_max = data_results_plot.filter(items = 
+                                ('Well', 'Time', 'µ_max corresponding Value')
+                                , axis=1)
+    data_results_plot_µ_max.loc[:, 'Source'] = 'µ_max'
 
 
-if use_linear_area == True:
-    
-    data_results_plot = data_results_plot.append([data_results_plot_fitted,
-                                                  data_results_plot_tangent,
-                                                  data_results_plot_µ_max,
-                                                  data_results_plot_upper,
-                                                  data_results_plot_lower
-                                                  ], ignore_index = True, 
-                                                  sort = False)
-    
-else:
-    
-    data_results_plot = data_results_plot.append([data_results_plot_fitted,
-                                                  data_results_plot_tangent,
-                                                  data_results_plot_µ_max
-                                                  ], ignore_index=True, 
-                                                  sort=False)
+    data_results_plot = data_results_plot.filter(items = 
+                        ('Well', 'Time', 'Value'), axis=1)
+    data_results_plot.loc[:, 'Source'] = 'raw data'
 
 
-#
-alt.data_transformers.enable('default', max_rows=None)
-
-#give colors for specific values:
-if use_linear_area == True:
-    
-    domain = ['raw data', 'fitted data', 'tangent', 'upper boundary', 'lower boundary']
-    range_ = ['teal', 'black', 'orange', 'red', 'red']
-
-else:
-    
-    domain = ['raw data', 'fitted data', 'tangent', 'point of µ_max']
-    range_ = ['teal', 'black', 'orange', 'red']
-
-#define altair-charts:
-raw_data = alt.Chart(data_results_plot).mark_point(size = 20, filled = True
-    ).encode(
-        alt.X('Time:Q', scale=alt.Scale(domain=(0, 66000)), axis=alt.Axis(title='Time [s]')),
-        alt.Y('Value:Q', scale=alt.Scale(domain=(0, 1.5)), axis=alt.Axis(title='OD (600 nm)')),
-        color = alt.Color('Source', scale = alt.Scale(domain = domain, range = range_), legend = alt.Legend(title = ""))
-    ).transform_filter(
-        alt.FieldRangePredicate(field='Value', range=[0, 1.5])
-    )
+    if use_linear_area == True:
+        
+        data_results_plot = data_results_plot.append([data_results_plot_fitted,
+                                                      data_results_plot_tangent,
+                                                      data_results_plot_µ_max,
+                                                      data_results_plot_upper,
+                                                      data_results_plot_lower
+                                                      ], ignore_index = True, 
+                                                      sort = False)
+        
+    else:
+        
+        data_results_plot = data_results_plot.append([data_results_plot_fitted,
+                                                      data_results_plot_tangent,
+                                                      data_results_plot_µ_max
+                                                      ], ignore_index=True, 
+                                                      sort=False)
 
 
-fitted_curves = alt.Chart(data_results_plot).mark_line(
-    ).encode(
-        alt.X('Time:Q'),
-        alt.Y('Fitted Value:Q'),
-        color = alt.Color('Source', scale = alt.Scale(domain = domain, range = range_), legend = alt.Legend(title = ""))
-    )
+    #
+    alt.data_transformers.enable('default', max_rows=None)
+
+    #give colors for specific values:
+    if use_linear_area == True:
+        
+        domain = ['raw data', 'fitted data', 'tangent', 'upper boundary', 'lower boundary']
+        range_ = ['teal', 'black', 'orange', 'red', 'red']
+
+    else:
+        
+        domain = ['raw data', 'fitted data', 'tangent', 'point of µ_max']
+        range_ = ['teal', 'black', 'orange', 'red']
+
+    #define altair-charts:
+    raw_data = alt.Chart(data_results_plot).mark_point(size = 20, filled = True
+        ).encode(
+            alt.X('Time:Q', scale=alt.Scale(domain=(0, 66000)), axis=alt.Axis(title='Time [s]')),
+            alt.Y('Value:Q', scale=alt.Scale(domain=(0, 1.5)), axis=alt.Axis(title='OD (600 nm)')),
+            color = alt.Color('Source', scale = alt.Scale(domain = domain, range = range_), legend = alt.Legend(title = ""))
+        ).transform_filter(
+            alt.FieldRangePredicate(field='Value', range=[0, 1.5])
+        )
 
 
-tangent = alt.Chart(data_results_plot).mark_line(opacity = 0.5
-    ).encode(
-        alt.X('Time:Q'),
-        alt.Y('Tangent y-value:Q'),
-        color = alt.Color('Source', scale = alt.Scale(domain = domain, range = range_), legend = alt.Legend(title = ""))
-    ).transform_filter(
-        alt.FieldRangePredicate(field='Tangent y-value', range=[0, 1.5]))
-
-#check if manually a linear area was set:
-if use_linear_area == True:
-    
-    #if TRUE initialize plots for upper and lower border:
-    upper_border = alt.Chart(data_results_plot).mark_line(opacity = 0.35
+    fitted_curves = alt.Chart(data_results_plot).mark_line(
         ).encode(
             alt.X('Time:Q'),
-            alt.Y('Upper Boundary:Q'),
+            alt.Y('Fitted Value:Q'),
             color = alt.Color('Source', scale = alt.Scale(domain = domain, range = range_), legend = alt.Legend(title = ""))
         )
 
-    lower_border = alt.Chart(data_results_plot).mark_line(opacity = 0.35
+
+    tangent = alt.Chart(data_results_plot).mark_line(opacity = 0.5
         ).encode(
             alt.X('Time:Q'),
-            alt.Y('Lower Boundary:Q'),
+            alt.Y('Tangent y-value:Q'),
             color = alt.Color('Source', scale = alt.Scale(domain = domain, range = range_), legend = alt.Legend(title = ""))
-        )
+        ).transform_filter(
+            alt.FieldRangePredicate(field='Tangent y-value', range=[0, 1.5]))
 
-    #define plot from subplots:
-    plotted = alt.layer(
-            raw_data,
-            fitted_curves,
-            tangent,
-            upper_border,
-            lower_border,
-            data = data_results_plot
-        ).facet(
-            facet = 'Well',
-            columns = plot_columns
-        ).resolve_axis(
-            x='independent',
-            y='independent'
-        ).resolve_scale(
-            color = 'independent'
-        ).configure_legend(
-            orient = 'right',
-            labelFontSize = 15,
-            symbolSize = 20
-        )
+    #check if manually a linear area was set:
+    if use_linear_area == True:
+        
+        #if TRUE initialize plots for upper and lower border:
+        upper_border = alt.Chart(data_results_plot).mark_line(opacity = 0.35
+            ).encode(
+                alt.X('Time:Q'),
+                alt.Y('Upper Boundary:Q'),
+                color = alt.Color('Source', scale = alt.Scale(domain = domain, range = range_), legend = alt.Legend(title = ""))
+            )
 
-else:
+        lower_border = alt.Chart(data_results_plot).mark_line(opacity = 0.35
+            ).encode(
+                alt.X('Time:Q'),
+                alt.Y('Lower Boundary:Q'),
+                color = alt.Color('Source', scale = alt.Scale(domain = domain, range = range_), legend = alt.Legend(title = ""))
+            )
 
-    #initialize plot for µ_max-point:
-    µ_max_point = alt.Chart(data_results_plot).mark_point(color= 'red', size = 75, filled = True
-    ).encode(
-            alt.X('Time:Q'),
-            alt.Y('µ_max corresponding Value:Q')
-        )
-    
+        #define plot from subplots:
+        plotted = alt.layer(
+                raw_data,
+                fitted_curves,
+                tangent,
+                upper_border,
+                lower_border,
+                data = data_results_plot
+            ).facet(
+                facet = 'Well',
+                columns = plot_columns
+            ).resolve_axis(
+                x='independent',
+                y='independent'
+            ).resolve_scale(
+                color = 'independent'
+            ).configure_legend(
+                orient = 'right',
+                labelFontSize = 15,
+                symbolSize = 20
+            )
 
-    #define plot from subplots:
-    plotted = alt.layer(
-            raw_data,
-            fitted_curves,
-            tangent,
-            µ_max_point,
-            data = data_results_plot
-        ).facet(
-            facet = 'Well',
-            columns = plot_columns
-        ).resolve_axis(
-            x='independent',
-            y='independent'
-        ).resolve_scale(
-            color = 'independent'
-        ).configure_legend(
-            orient = 'right',
-            labelFontSize = 15,
-            symbolSize = 20,
-        )
+    else:
 
+        #initialize plot for µ_max-point:
+        µ_max_point = alt.Chart(data_results_plot).mark_point(color= 'red', size = 75, filled = True
+        ).encode(
+                alt.X('Time:Q'),
+                alt.Y('µ_max corresponding Value:Q')
+            )
+        
 
+        #define plot from subplots:
+        plotted = alt.layer(
+                raw_data,
+                fitted_curves,
+                tangent,
+                µ_max_point,
+                data = data_results_plot
+            ).facet(
+                facet = 'Well',
+                columns = plot_columns
+            ).resolve_axis(
+                x='independent',
+                y='independent'
+            ).resolve_scale(
+                color = 'independent'
+            ).configure_legend(
+                orient = 'right',
+                labelFontSize = 15,
+                symbolSize = 20,
+            )
 
-
-#save plot:
-plotted.save('Results_diagrams.svg', scale_factor = 5.0)
+    #save plot:
+    plotted.save('Results_diagrams.svg', scale_factor = 5.0)
