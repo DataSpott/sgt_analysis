@@ -7,3 +7,4 @@ or by cloning this git-repository and starting the *"SGT_Analyser.py"*-module in
 
 
 
+For detailed instructions about the setup and use of *"SGT_Anaylser"* please see the manual provided in this repository.
