@@ -21,7 +21,7 @@ import sys
 import altair_saver
 import selenium
 from scipy.optimize import curve_fit
-from tqdm import tqdm
+from tqdm import tqdm#, tqdm_notebook
 
 
 ################################################################################
@@ -895,7 +895,6 @@ for i in tqdm(range(1), desc = 'Checking board'):
             print('Number of given concentrations of both antibiotics doesn´t match with the given checkerboard-layout. Please check that the number of rows and columns match with the number of given concentrations for each antibiotic.')
             
             second_block_first_half_done = False
-
 
 
 ################################################################################
