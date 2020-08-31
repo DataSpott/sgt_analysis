@@ -146,8 +146,8 @@ If you use the optional flag *--use_linear_area* **or** *-u* you also need to us
 :::
 
 * confirm the command
-* the program will inform you about it's progress via outputs to the terminal **(not implemented yet)**
-* when the program finished the analysis it saves a results-file and a svg-file with the resulting diagramms in the created results-directory
+* the program will inform you about it's progress via outputs to the terminal
+* when the program finished the analysis it saves a .md ("Markdown")-file with the results-tables and a .svg ("Scaleable Vector Graphic")-file with the resulting diagrams for all wells in the created results-directory
 
 
 ## 4. Testing SGT-Analyser
