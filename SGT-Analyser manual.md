@@ -1,11 +1,11 @@
 # SGT-Analyser manual
 
-Welcome to the **"SGT-Analyser"**, a tool for the automated analysis of antibiotic-synergisms via the "Start Growth Time"-method.
+Welcome to the ***"SGT-Analyser"***, a tool for the automated analysis of antibiotic-synergisms via the "Start Growth Time"-method.
 
 
 ## 1. General information
 
-The program **"SGT-Analyser"** uses the "Start Growth Time"-methode to analyse growth-curves and allow a statement about a possible synergism between two antibiotics.
+The program ***"SGT-Analyser"*** uses the "Start Growth Time"-methode to analyse growth-curves and allow a statement about a possible synergism between two antibiotics.
 
 By uploading an excel-dataset and defining the checkerboard as well as the antibiotics the program caluclates first the SGT-value of each well on the checkerboard and consequential the log-level-reduction of each well and the "Fractional Inhibitory Concentration Index" (FICI)-average for each checkerboard.
 
@@ -22,13 +22,13 @@ As a guideline:
 * a value of 0.5 < FICI-average < 2.0 can be assumed as addition-effect between both antibiotics
 * a FICI-average of >= 2.0 can be assumed as antagonism between both antibiotics
 
-:::warning
-Due to limitations in the input of antibiotic concentrations the tool can only handle checkerboards with a similiar layout (= the same antibiotic combinations & arrangement for each checkerboard). To run checkerboards with different concentration-combinations or arrangements of the antibiotics please run multiple instances of the program instead.
-:::
+```bash
+**Due to limitations in the input of antibiotic concentrations the tool can only handle checkerboards with a similiar layout (= the same antibiotic combinations & arrangement for each checkerboard). To run checkerboards with different concentration-combinations or arrangements of the antibiotics please run multiple instances of the program instead.**
+```
 
-:::warning
-SGT-Analyser uses Excel-formats as the Tecan Infinite or Tecan Sunrise create. To download example-files of the supported formats use the links provided under "4. Testing SGT-Analyser".
-:::
+```bash
+**SGT-Analyser uses Excel-formats as the Tecan Infinite or Tecan Sunrise create. To download example-files of the supported formats use the links provided under "4. Testing SGT-Analyser".**
+```
 
 You can make a Testrun by using the example data-files and parameters provided in chapter "4. Testing SGT-Analyser".
 
@@ -55,12 +55,12 @@ The program is only able to read Excel-files in a format as created from the Tec
 * select the Excel-file by double left-clicking or by a single left-click combined with a left-click at the button "Open"
 * the file will now be uploaded and the upload will get confirmed with a text-message
 
-:::danger
+```bash
 If you run the program the first time in your browser make sure to allow cookies for this website, because otherwise Colab won´t be able to upload your data.
 Also sometimes after opening the program for the first time following error-message appears:
 **"MessageError: TypeError: google.colab._files is undefined"**
 In this case just click the Play-Button again.
-:::
+```
 
 * when the text-message appears that the initialization is completed the first block is done
 
@@ -92,11 +92,14 @@ In this case just click the Play-Button again.
 * use "git clone" to download the Git-repository from Github
 * navigate into the downloaded repository-folder at your computer
 
-:::warning
-The program is written using Python3, so there may be issues when executing with earlier Python-versions.
-:::
+```bash
+**The program is written using Python3, so there may be issues when executing with earlier Python-versions.**
+```
 
-* use "sudo apt install python3-pip" to install the pip3 installer for Python3
+* if not present install pip3 for Python3 using
+```bash
+sudo apt install python3-pip
+```
 
 * use "pip3 install modul_name" to set up the following modules:
 1. pandas
@@ -112,7 +115,9 @@ The program is written using Python3, so there may be issues when executing with
 
 * open a Shell-terminal
 * use *"python3 ~/.../SGT_Analyser.py"* with the following flags to analyse your Excel-file:
+
 **This flags are requried and specify your parameters**
+
 1. --checkerboard_nr
 2. --first_well
 3. --last_well
@@ -125,25 +130,31 @@ The program is written using Python3, so there may be issues when executing with
 10. --cut_off
 
 **This flags are optional**
+
 11. --output **or** -o
 11. --use_linear_area **or** -u
 12. --upper_boundary
 13. --lower_boundary
 
-:::warning
+
+**For help use the flag:**
+
+14. -h **or** --help
+
+```bash
 If you use the optional flag *--use_linear_area* **or** *-u* you also need to use the flags *--upper_boundary* and *--lower_boundary*
-:::
+```
 
 * using only the required flags the program will automatically calculate µ
-* if the *--output* flag isn used the program creates a result-directory in the directory where SGT_Analyser.py is located
+* if the *--output* flag isn't used the program creates a result-directory in the directory where SGT_Analyser.py is located
 * using the optional flag *--output* **or** *-o* you can specify a directory-path where the program will create a results-directory
 * using the optional flag *--use_linea_area* **or** *-u* in combination with *--upper_boundary* and *--lower_boundary* let you set a linear area over all grwoth-curves to calculate µ 
 * write the corresponding parameters behind each flag as shown in the following example:
 
-:::info
+```
 **Example**
 *python3 SGT_Analyser.py --checkerboard_nr **2** --first_well **A01 A07** --last_well **G06 G12** --log_time **70** --antibiotic_one_name **Nitroxolin** --antibiotic_one_conc **0 4 8 16 32 64 128** --antibiotic_two_name **Dalbavancin** --antibiotic_two_conc **0 0.5 1 2 4 8** --input **~/.../SGT_Analyser/Example_Data/Tecan_Sunrise_test_data.xlsx** --cut_off **0.6** --output **Results.md** --use_linear_area --upper_boundary **0.6** --lower_boundary **0.4**"*
-:::
+```
 
 * confirm the command
 * the program will inform you about it's progress via outputs to the terminal
