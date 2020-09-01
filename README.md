@@ -23,9 +23,9 @@ In the following is described how to use either of this options.
 
 ### Using *SGT_Analyser* in the terminal
 * clone this git-repository to your computer using the command
-:::info
+```bash
 git clone https://github.com/DataSpott/SGT-Analysis.git
-:::
+```
 
 * if not already installed use the following command to install pip for python3 in your terminal
 :::info
