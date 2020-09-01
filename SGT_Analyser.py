@@ -65,6 +65,11 @@ cut_off = float(arg.cut_off)
 use_linear_area = arg.use_linear_area
 output_path = arg.output
 
+if arg.use_linear_area == True:
+
+    upper_boundary = float(arg.upper_boundary)
+    lower_boundary = float(arg.lower_boundary)
+
 #check for comma-separated list elements and split them into single elements:
 first_wells = [element.split(',') for element in first_wells]
 first_wells = [inner for outer in first_wells for inner in outer]
@@ -81,13 +86,6 @@ antibiotic_one_conc = [element for element in antibiotic_one_conc if element]
 antibiotic_two_conc = [element.split(',') for element in antibiotic_two_conc]
 antibiotic_two_conc = [inner for outer in antibiotic_two_conc for inner in outer]
 antibiotic_two_conc = [element for element in antibiotic_two_conc if element]
-
-print(first_wells, last_wells, antibiotic_one_conc, antibiotic_two_conc)
-
-if arg.use_linear_area == True:
-
-    upper_boundary = float(arg.upper_boundary)
-    lower_boundary = float(arg.lower_boundary)
 
 #check if number of checkerboards matches number of given first & last wells:
 if len(first_wells) > checkerboard_nr:
