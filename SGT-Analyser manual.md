@@ -23,11 +23,15 @@ As a guideline:
 * a FICI-average of >= 2.0 can be assumed as antagonism between both antibiotics
 
 ```bash
-**Due to limitations in the input of antibiotic concentrations the tool can only handle checkerboards with a similiar layout (= the same antibiotic combinations & arrangement for each checkerboard). To run checkerboards with different concentration-combinations or arrangements of the antibiotics please run multiple instances of the program instead.**
+Due to limitations in the input of antibiotic concentrations the tool can only handle checkerboards 
+with a similiar layout (= the same antibiotic combinations & arrangement for each checkerboard). 
+To run checkerboards with different concentration-combinations or arrangements of the antibiotics 
+please run multiple instances of the program instead.
 ```
 
 ```bash
-**SGT-Analyser uses Excel-formats as the Tecan Infinite or Tecan Sunrise create. To download example-files of the supported formats use the links provided under "4. Testing SGT-Analyser".**
+SGT-Analyser uses Excel-formats as the Tecan Infinite or Tecan Sunrise create.
+To download example-files of the supported formats use the links provided under "4. Testing SGT-Analyser".
 ```
 
 You can make a Testrun by using the example data-files and parameters provided in chapter "4. Testing SGT-Analyser".
@@ -56,9 +60,10 @@ The program is only able to read Excel-files in a format as created from the Tec
 * the file will now be uploaded and the upload will get confirmed with a text-message
 
 ```bash
-If you run the program the first time in your browser make sure to allow cookies for this website, because otherwise Colab won´t be able to upload your data.
+If you run the program the first time in your browser make sure to allow cookies for this website, 
+because otherwise Colab won´t be able to upload your data.
 Also sometimes after opening the program for the first time following error-message appears:
-**"MessageError: TypeError: google.colab._files is undefined"**
+"MessageError: TypeError: google.colab._files is undefined"
 In this case just click the Play-Button again.
 ```
 
@@ -93,7 +98,7 @@ In this case just click the Play-Button again.
 * navigate into the downloaded repository-folder at your computer
 
 ```bash
-**The program is written using Python3, so there may be issues when executing with earlier Python-versions.**
+The program is written using Python3, so there may be issues when executing with earlier Python-versions.
 ```
 
 * if not present install pip3 for Python3 using
@@ -142,7 +147,7 @@ sudo apt install python3-pip
 14. -h **or** --help
 
 ```bash
-If you use the optional flag *--use_linear_area* **or** *-u* you also need to use the flags *--upper_boundary* and *--lower_boundary*
+If you use the optional flag --use_linear_area or -u you also need to use the flags --upper_boundary and --lower_boundary
 ```
 
 * using only the required flags the program will automatically calculate µ
@@ -152,8 +157,8 @@ If you use the optional flag *--use_linear_area* **or** *-u* you also need to us
 * write the corresponding parameters behind each flag as shown in the following example:
 
 ```
-**Example**
-*python3 SGT_Analyser.py --checkerboard_nr **2** --first_well **A01 A07** --last_well **G06 G12** --log_time **70** --antibiotic_one_name **Nitroxolin** --antibiotic_one_conc **0 4 8 16 32 64 128** --antibiotic_two_name **Dalbavancin** --antibiotic_two_conc **0 0.5 1 2 4 8** --input **~/.../SGT_Analyser/Example_Data/Tecan_Sunrise_test_data.xlsx** --cut_off **0.6** --output **Results.md** --use_linear_area --upper_boundary **0.6** --lower_boundary **0.4**"*
+Example:
+python3 ~/.../SGT_Analyser.py --checkerboard_nr 2 --first_well A01 A07 --last_well G06 G12 --log_time 70 --antibiotic_one_name Nitroxolin --antibiotic_one_conc 0 4 8 16 32 64 128 --antibiotic_two_name Dalbavancin --antibiotic_two_conc 0 0.5 1 2 4 8 --input ~/.../SGT_Analyser/Example_Data/Tecan_Sunrise_test_data.xlsx --cut_off 0.6 --output ~/.../SGT_Analyser --use_linear_area --upper_boundary 0.6 --lower_boundary 0.4
 ```
 
 * confirm the command
