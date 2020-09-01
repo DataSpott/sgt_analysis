@@ -21,7 +21,7 @@ import sys
 import altair_saver
 import selenium
 from scipy.optimize import curve_fit
-from tqdm import tqdm#, tqdm_notebook
+from tqdm import tqdm
 
 
 ################################################################################
@@ -29,17 +29,16 @@ from tqdm import tqdm#, tqdm_notebook
 import argparse
 parser = argparse.ArgumentParser(description = 'Analyses growth curves with the SGT-method to determine antibiotic synergisms.')
 
-# parser.add_argument('--well_plate_format', help = "Format of your well-plate", choices=['24', '48', '96', '384'])
-parser.add_argument('--checkerboard_nr', help = "Number of Checkerboards at the well-plate.")
-parser.add_argument('--first_well', nargs = '+', help = "First wells of all checkerboards on the plate.")
-parser.add_argument('--last_well', nargs = '+', help = "Last wells of all Checkerboards on the plate.")
-parser.add_argument('--log_time', help = "Time in [min] that the investigated bacteria needs to grow one log-level.")
-parser.add_argument('--antibiotic_one_name', help = "Name of the first antibiotic.", default = 'Antibiotic 1')
-parser.add_argument('--antibiotic_one_conc', nargs = '+', help = "Concentrations of the first antibiotic.")
-parser.add_argument('--antibiotic_two_name', help = "Name of the second antibiotic.", default = 'Antibiotic 2')
-parser.add_argument('--antibiotic_two_conc', nargs = '+', help = "Concentrations of the second antibiotic.")
-parser.add_argument('-i', '--input', help = "Path to the file with your data.")
-parser.add_argument('--cut_off', help = "Declare an CutOff-value for the SGT-calculation")
+parser.add_argument('--checkerboard_nr', help = "Number of Checkerboards at the well-plate", required = True)
+parser.add_argument('--first_well', nargs = '+', help = "First wells of all checkerboards on the plate (left upper corner, should be your control)", required = True)
+parser.add_argument('--last_well', nargs = '+', help = "Last wells of all Checkerboards on the plate (right lower corner)", required = True)
+parser.add_argument('--log_time', help = "Time in [min] that the investigated bacteria needs to grow one log-level", required = True)
+parser.add_argument('--antibiotic_one_name', help = "Name of the first antibiotic", default = 'Antibiotic 1')
+parser.add_argument('--antibiotic_one_conc', nargs = '+', help = "Concentrations of the first antibiotic", required = True)
+parser.add_argument('--antibiotic_two_name', help = "Name of the second antibiotic", default = 'Antibiotic 2')
+parser.add_argument('--antibiotic_two_conc', nargs = '+', help = "Concentrations of the second antibiotic", required = True)
+parser.add_argument('-i', '--input', help = "Path to the file with your data", required = True)
+parser.add_argument('--cut_off', help = "Declare an CutOff-value for the SGT-calculation", required = True)
 parser.add_argument('-u','--use_linear_area', help = "Optional flag if you want to determine a linear area for the µ-calculation", action = 'store_true', default = False)
 parser.add_argument('--upper_boundary', help = "OD-value of the upper boundary of the linear area")
 parser.add_argument('--lower_boundary', help = "OD-value of the lower boundary of the linear area")
@@ -65,6 +64,25 @@ input_file = arg.input
 cut_off = float(arg.cut_off)
 use_linear_area = arg.use_linear_area
 output_path = arg.output
+
+#check for comma-separated list elements and split them into single elements:
+first_wells = [element.split(',') for element in first_wells]
+first_wells = [inner for outer in first_wells for inner in outer]
+first_wells = [element for element in first_wells if element]
+
+last_wells = [element.split(',') for element in last_wells]
+last_wells = [inner for outer in last_wells for inner in outer]
+last_wells = [element for element in last_wells if element]
+
+antibiotic_one_conc = [element.split(',') for element in antibiotic_one_conc]
+antibiotic_one_conc = [inner for outer in antibiotic_one_conc for inner in outer]
+antibiotic_one_conc = [element for element in antibiotic_one_conc if element]
+
+antibiotic_two_conc = [element.split(',') for element in antibiotic_two_conc]
+antibiotic_two_conc = [inner for outer in antibiotic_two_conc for inner in outer]
+antibiotic_two_conc = [element for element in antibiotic_two_conc if element]
+
+print(first_wells, last_wells, antibiotic_one_conc, antibiotic_two_conc)
 
 if arg.use_linear_area == True:
 
