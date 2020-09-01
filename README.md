@@ -12,6 +12,7 @@ The use via Google Colab is suited for non-informaticians and
 provides a graphical interface to interact with.
 To use the terminal-variant some informatical knowledge is required 
 to setup the modules and use the flags.
+Further you will need an Excel-file with the data of your growth curves
 
 In the following is described how to use either of this options.
 
@@ -28,9 +29,9 @@ git clone https://github.com/DataSpott/SGT-Analysis.git
 ```
 
 * if not already installed use the following command to install pip for python3 in your terminal
-:::info
+```bash
 sudo apt install python3-pip
-:::
+```
 
 * use "pip3 install module_name" to install the following modules in your terminal
 1. pandas
@@ -43,14 +44,10 @@ sudo apt install python3-pip
 8. IPython
 9. tqdm
 
-* 
+* to start the *SGT_Analyser* use the command
+```bash
+python3 ~/.../SGT_Analyser.py --help
+```
 
-**"SGT_Analyser.py"*-module in your terminal.
-
-Further you will need an Excel-file with the data of your growth curves
-## Using *SGT_Analyser* with Google Colab
-
-
-
-
+## Further information
 Detailed instructions about the setup and use of *"SGT_Anaylser"* can be found in the manual provided in this repository.
