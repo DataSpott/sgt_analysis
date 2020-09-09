@@ -18,8 +18,6 @@ import string
 import subprocess as sub
 import os
 import sys
-#import altair_saver
-#import selenium
 from scipy.optimize import curve_fit
 from tqdm import tqdm
 
