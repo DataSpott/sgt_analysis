@@ -1,9 +1,10 @@
-#FROM ubuntu:20.04
+# Initialize OS:
 FROM debian:bullseye-slim
 
-# Maintainer:
-MAINTAINER DataSpott
+# Labels:
+LABEL maintainer="DataSpott"
 
+# Update OS:
 RUN apt-get update \
     && apt-get install -y --no-install-recommends software-properties-common \
     && apt-get -y install python3-pip \
