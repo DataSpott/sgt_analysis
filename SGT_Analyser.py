@@ -18,8 +18,8 @@ import string
 import subprocess as sub
 import os
 import sys
-import altair_saver
-import selenium
+#import altair_saver
+#import selenium
 from scipy.optimize import curve_fit
 from tqdm import tqdm
 
@@ -1730,4 +1730,4 @@ for i in tqdm(range(1), desc = 'Creating diagramms'):
             )
 
     #save plot:
-    plotted.save('Results_diagrams.svg', scale_factor = 5.0)
+    plotted.save('Results_diagrams.html', scale_factor = 5.0)
