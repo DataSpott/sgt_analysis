@@ -1,5 +1,5 @@
 # Initialize OS:
-FROM debian:bullseye-slim
+FROM debian:bullseye-20200803-slim
 
 # Labels:
 LABEL maintainer="DataSpott"
@@ -11,15 +11,15 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Install python-modules:
-RUN pip3 install install pandas \
-    && pip3 install altair \
-    && pip3 install xlrd \
-    && pip3 install scipy \
-    && pip3 install tabulate \
-    && pip3 install IPython \
-    && pip3 install tqdm \
-    && pip3 install widgetsnbextension \
-    && pip3 install webencodings \
+RUN pip3 install install pandas==1.1.2 \
+    && pip3 install altair==4.1.0 \
+    && pip3 install xlrd==1.2.0 \
+    && pip3 install scipy==1.5.2 \
+    && pip3 install tabulate==0.8.7 \
+    && pip3 install IPython==7.18.1 \
+    && pip3 install tqdm==4.48.2 \
+    && pip3 install widgetsnbextension==3.5.1 \
+    && pip3 install webencodings==0.5.1 \
     && mkdir /results
 
 # Copy the SGT_Analyser-directory:
