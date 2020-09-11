@@ -1,3 +1,5 @@
+[![badge](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DataSpott/SGT-Analysis/blob/master/SGT_Analyser.ipynb)
+
 # SGT-Analyser
 * by Riccardo Spott
 
