@@ -19,8 +19,7 @@ Further you will need an Excel-file with the data of your growth curves
 In the following is described how to use either of this options.
 
 ### Using *SGT_Analyser* in Google Colab
-* open the tab *"SGT_Analysis.ipynb"*
-* use the link *"Open in Colab"*
+* use the link *["Open in Colab"](https://colab.research.google.com/github/DataSpott/SGT-Analysis/blob/master/SGT_Analyser.ipynb)*
 * You will be directed to a Google Colab-site, where the program is setup
 * start each block after the preceding, following the instrcutions given at the site
 
