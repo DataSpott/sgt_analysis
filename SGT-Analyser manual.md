@@ -41,8 +41,7 @@ You can make a Testrun by using the example data-files and parameters provided i
 
 ### 2.1. Getting started in Google Colab
 
-* To set the program up left-click the tab "SGT_Analyser.ipynb" in the "SGT-Analysis"-git
-* after loading left-click the link "Open in Colab"
+* To set the program up left-click the link [![badge](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DataSpott/SGT-Analysis/blob/master/SGT_Analyser.ipynb)
 * a new browser-tab will be opened, which is directed to the Colab environment, where the program is set up
 
 ### 2.2. Executing the program in Google Colab
