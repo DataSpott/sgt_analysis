@@ -21,11 +21,9 @@ RUN pip3 install install pandas==1.1.2 \
     && pip3 install tqdm==4.48.2 \
     && pip3 install widgetsnbextension==3.5.1 \
     && pip3 install webencodings==0.5.1 \
-    && mkdir /results \
-    && git init /sgt_analyser
+    && mkdir /results
 
 # Copy the SGT_Analyser-directory:
-RUN cd /sgt_analyser \
-    && git clone https://github.com/DataSpott/SGT-Analysis.git
+RUN git clone https://github.com/DataSpott/SGT-Analysis.git
 
-ENV PATH /sgt_analyser:$PATH
+ENV PATH "$PATH:/SGT-Analysis"
