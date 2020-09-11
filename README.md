@@ -9,7 +9,7 @@ The goal is to determine synergistic, additional or antagonistic effects between
 For this the so called *"Start Growth Time"*-method is used.
 
 ## Getting started
-You can use this program either in Google Colab or in your terminal.
+You can use this program either in [Google Colab](https://colab.research.google.com/github/DataSpott/SGT-Analysis/blob/master/SGT_Analyser.ipynb) or in your terminal.
 The use via Google Colab is suited for non-informaticians and
 provides a graphical interface to interact with.
 To use the terminal-variant some informatical knowledge is required 
