@@ -31,7 +31,7 @@ In the following is described how to use either of this options.
 ### Using *SGT_Analyser* in the terminal
 For the use of *SGT_Analyser* in your terminal there are two options:
 
-1. Setup on your own system:
+**1. Setup on your own system:**
 * clone this git-repository to your computer using the command
 ```bash
 git clone https://github.com/DataSpott/SGT-Analysis.git
@@ -58,7 +58,7 @@ sudo apt install python3-pip
 python3 ~/.../sgt_analysis/sgt_analyser.py --help
 ```
 
-2. Use the docker-container:
+**2. Use the docker-container:**
 * make sure docker is installed at your system as described under https://docs.docker.com/get-docker/
 * use following command to pull the docker-image to your system:
 ```bash
