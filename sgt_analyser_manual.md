@@ -1,4 +1,4 @@
-# ***"SGT-Analyser"*** manual
+# *SGT-Analyser*-manual
 
 Welcome to the ***"SGT-Analyser"***, a tool for the automated analysis of antibiotic-synergisms via the "Start Growth Time"-method.
 
@@ -189,15 +189,13 @@ To make a Testrun of the program using the Google Colab environment please downl
 * <a href="https://github.com/DataSpott/SGT-Analysis/blob/master/example_data/tecan_sunrise_test_data.xlsx">Tecan-Sunrise example-file</a>
 * <a href="https://github.com/DataSpott/SGT-Analysis/blob/master/example_data/tecan_infinite_test_data.xlsx">Tecan-Infinite example-file</a>
 
-Alternatively download the example files directly from the Git-repository "SGT-Analysis".
-* For this enter the subdirectory "Example data" by double left-click.
-* Then left-click on either of the example file-names to open it.
-* By left-clicking the download-button the file is downloaded to your computer
+Alternatively if you cloned the repository or use the docker-image both example files are directly included in the subdirectory *"example_data"* in the *"sgt_analysis"*-directory.
 
-When running the first block "Data-upload and program-initialization" you can then browse for the example-files and upload them as described under chapter "2.2. Executing the program in Google Colab".
+When running the program in *Google Colab* browse for the example-files and upload them as described under chapter *"2.2. Executing the program in Google Colab"*.
+If you instead run the program in the commandline (either on your own system or in the container) use the input-flag (see *"3.2. Executing the program with Shell-commandline"*) to specify the file and path to it.
 
-* follow the instructions as described in chapter "2.2. Executing the program in Google Colab"
-* at the according points insert the following parameters:
+* using *Google Colab* follow the instructions as described in chapter "2.2. Executing the program in Google Colab" and at the according points insert the parameters provided in the following table.
+* when using the commandline add the values provided in the following table after the corresponding flags.
 
 |Parameter | Value| Comment|
 |-|-|-|
