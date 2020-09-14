@@ -29,6 +29,9 @@ In the following is described how to use either of this options.
 * start each block after the preceding, following the instrcutions given at the site
 
 ### Using *SGT_Analyser* in the terminal
+For the use of *SGT_Analyser* in your terminal there are two options:
+
+1. Setup on your own system:
 * clone this git-repository to your computer using the command
 ```bash
 git clone https://github.com/DataSpott/SGT-Analysis.git
@@ -52,7 +55,32 @@ sudo apt install python3-pip
 
 * to start the *SGT_Analyser* use the command
 ```bash
-python3 ~/.../SGT_Analyser.py --help
+python3 ~/.../sgt_analysis/sgt_analyser.py --help
+```
+
+2. Use the docker-container:
+* make sure docker is installed at your system as described under https://docs.docker.com/get-docker/
+* use following command to pull the docker-image to your system:
+```bash
+docker pull dataspott/bioinformatic-tools:python_for_sgt_analyser
+```
+* check the ID of the image using the command:
+```bash
+docker images
+```
+* start either the container using the command:
+```bash
+docker run --rm -it Imgage-ID
+```
+* in the docker environment start the *SGT_Analyser* with the command: 
+```bash
+python3 sgt_analyser.py --help
+```
+
+**or**
+* start the *SGT_Analyser* directly when starting the container with the command:
+```bash
+docker run --rm -it Imgage-ID sgt_analyser.py --help
 ```
 
 ## Further information
