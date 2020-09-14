@@ -1,4 +1,4 @@
-# SGT-Analyser manual
+# ***"SGT-Analyser"*** manual
 
 Welcome to the ***"SGT-Analyser"***, a tool for the automated analysis of antibiotic-synergisms via the "Start Growth Time"-method.
 
@@ -22,17 +22,13 @@ As a guideline:
 * a value of 0.5 < FICI-average < 2.0 can be assumed as addition-effect between both antibiotics
 * a FICI-average of >= 2.0 can be assumed as antagonism between both antibiotics
 
-```bash
-Due to limitations in the input of antibiotic concentrations the tool can only handle checkerboards 
+> Due to limitations in the input of antibiotic concentrations the tool can only handle checkerboards 
 with a similiar layout (= the same antibiotic combinations & arrangement for each checkerboard). 
 To run checkerboards with different concentration-combinations or arrangements of the antibiotics 
 please run multiple instances of the program instead.
-```
 
-```bash
-SGT-Analyser uses Excel-formats as the Tecan Infinite or Tecan Sunrise create.
+> SGT-Analyser uses Excel-formats as the Tecan Infinite or Tecan Sunrise create.
 To download example-files of the supported formats use the links provided under "4. Testing SGT-Analyser".
-```
 
 You can make a Testrun by using the example data-files and parameters provided in chapter "4. Testing SGT-Analyser".
 
@@ -51,20 +47,16 @@ You can make a Testrun by using the example data-files and parameters provided i
 *  the first code-block will be executed and, after a confirmation that the installation is completed, a "browse"-button appear beneath the block
 *  by left-clicking the "browse"-button an explorer-window opens and you can browse for your Excel-file
 
-:::danger
-The program is only able to read Excel-files in a format as created from the Tecan-Sunrise and -Infinite. If your data wasn´t created by such an device please bring your data first into a format matching one of the example-files in chapter "4. Testing SGT-Analyser" before you upload it.
-:::
+> The program is only able to read Excel-files in a format as created from the Tecan-Sunrise and -Infinite. If your data wasn´t created by such an device please bring your data first into a format matching one of the example-files in chapter "4. Testing SGT-Analyser" before you upload it.
 
 * select the Excel-file by double left-clicking or by a single left-click combined with a left-click at the button "Open"
 * the file will now be uploaded and the upload will get confirmed with a text-message
 
-```bash
-If you run the program the first time in your browser make sure to allow cookies for this website, 
+> If you run the program the first time in your browser make sure to allow cookies for this website, 
 because otherwise Colab won´t be able to upload your data.
 Also sometimes after opening the program for the first time following error-message appears:
 "MessageError: TypeError: google.colab._files is undefined"
 In this case just click the Play-Button again.
-```
 
 * when the text-message appears that the initialization is completed the first block is done
 
@@ -92,13 +84,14 @@ In this case just click the Play-Button again.
 
 ### 3.1 Getting started with Shell-commandline
 
+To use the ***"SGT-Analyser"*** in the shell-commandline you can either setup all required modules on your own system or download a docker image with a prepared environment.
+
+#### 3.1.1. Setting up your own system
 * open a Shell-terminal
 * use "git clone" to download the Git-repository from Github
 * navigate into the downloaded repository-folder at your computer
 
-```bash
-The program is written using Python3, so there may be issues when executing with earlier Python-versions.
-```
+> The program is written using Python3, so there may be issues when executing with earlier Python-versions.
 
 * if not present install pip3 for Python3 using
 ```bash
@@ -115,12 +108,37 @@ sudo apt install python3-pip
 7. tabulate
 8. IPython
 
+* navigate to the directory of the repository using your commandline and continue with the instructions under *"3.2. Executing the program with Shell-commandline"*
+
+#### 3.1.2. Setting up the docker-image
+* make sure docker is installed at your system as described under https://docs.docker.com/get-docker/
+* use following command to pull the docker-image to your system:
+```bash
+docker pull dataspott/bioinformatic-tools:python_for_sgt_analyser
+```
+* check the ID of the image using the command:
+```bash
+docker images
+```
+* start the container using the command:
+```bash
+docker run --rm -it Imgage-ID
+```
+* you will be directed to the container environment
+* continue as described under *"3.2. Executing the program with Shell-commandline"*
+
+**or**
+* start the ***"SGT-Analyser"*** directly when starting the container using the command:
+```bash
+docker run --rm -it Imgage-ID sgt_analyser.py --FLAGS
+```
+* use the flags as described under *"3.2. Executing the program with Shell-commandline"*
+
 ### 3.2. Executing the program with Shell-commandline
 
-* open a Shell-terminal
-* use *"python3 ~/.../SGT_Analyser.py"* with the following flags to analyse your Excel-file:
+* use *"python3 sgt_analyser.py"* with the following flags to analyse your Excel-file:
 
-**This flags are requried and specify your parameters**
+**This flags are required and specify your parameters**
 
 1. --checkerboard_nr
 2. --first_well
@@ -140,14 +158,11 @@ sudo apt install python3-pip
 12. --upper_boundary
 13. --lower_boundary
 
+> If you use the optional flag --use_linear_area or -u you also need to use the flags --upper_boundary and --lower_boundary
 
 **For help use the flag:**
 
 14. -h **or** --help
-
-```bash
-If you use the optional flag --use_linear_area or -u you also need to use the flags --upper_boundary and --lower_boundary
-```
 
 * using only the required flags the program will automatically calculate µ
 * if the *--output* flag isn't used the program creates a result-directory in the directory where SGT_Analyser.py is located
@@ -155,9 +170,9 @@ If you use the optional flag --use_linear_area or -u you also need to use the fl
 * using the optional flag *--use_linea_area* **or** *-u* in combination with *--upper_boundary* and *--lower_boundary* let you set a linear area over all grwoth-curves to calculate µ 
 * write the corresponding parameters behind each flag as shown in the following example:
 
-```
 Example:
-python3 ~/.../SGT_Analyser.py --checkerboard_nr 2 --first_well A01 A07 --last_well G06 G12 --log_time 70 --antibiotic_one_name Nitroxolin --antibiotic_one_conc 0 4 8 16 32 64 128 --antibiotic_two_name Dalbavancin --antibiotic_two_conc 0 0.5 1 2 4 8 --input ~/.../SGT_Analyser/Example_Data/Tecan_Sunrise_test_data.xlsx --cut_off 0.6 --output ~/.../SGT_Analyser --use_linear_area --upper_boundary 0.6 --lower_boundary 0.4
+```bash
+python3 ~/sgt_analysis/sgt_analyser.py --checkerboard_nr 2 --first_well A01 A07 --last_well G06 G12 --log_time 70 --antibiotic_one_name Nitroxolin --antibiotic_one_conc 0 4 8 16 32 64 128 --antibiotic_two_name Dalbavancin --antibiotic_two_conc 0 0.5 1 2 4 8 --input ~/.../sgt_analyser/example_data/tecan_sunrise_test_data.xlsx --cut_off 0.6 --output ~/.../sgt_analyser --use_linear_area --upper_boundary 0.6 --lower_boundary 0.4
 ```
 
 * confirm the command
@@ -165,7 +180,7 @@ python3 ~/.../SGT_Analyser.py --checkerboard_nr 2 --first_well A01 A07 --last_we
 * when the program finished the analysis it saves a .md ("Markdown")-file with the results-tables and a .svg ("Scaleable Vector Graphic")-file with the resulting diagrams for all wells in the created results-directory
 
 
-## 4. Testing SGT-Analyser
+## 4. Testing ***"SGT-Analyser"***
 
 ### 4.1. Testing in Google Colab
 
