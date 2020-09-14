@@ -167,7 +167,7 @@ docker run --rm -it Imgage-ID sgt_analyser.py --FLAGS
 * using only the required flags the program will automatically calculate µ
 * if the *--output* flag isn't used the program creates a result-directory in the directory where SGT_Analyser.py is located
 * using the optional flag *--output* **or** *-o* you can specify a directory-path where the program will create a results-directory
-* using the optional flag *--use_linea_area* **or** *-u* in combination with *--upper_boundary* and *--lower_boundary* let you set a linear area over all grwoth-curves to calculate µ 
+* using the optional flag *--use_linea_area* **or** *-u* in combination with *--upper_boundary* and *--lower_boundary* let you set a linear area over all growth-curves to calculate µ 
 * write the corresponding parameters behind each flag as shown in the following example:
 
 Example:
