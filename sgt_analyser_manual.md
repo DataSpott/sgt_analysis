@@ -41,7 +41,7 @@ You can make a Testrun by using the example data-files and parameters provided i
 
 ### 2.1. Getting started in Google Colab
 
-* To set the program up left-click the link [![badge](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DataSpott/SGT-Analysis/blob/master/SGT_Analyser.ipynb)
+* To set the program up left-click the link [![badge](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DataSpott/SGT-Analysis/blob/master/sgt_analyser.ipynb)
 * a new browser-tab will be opened, which is directed to the Colab environment, where the program is set up
 
 ### 2.2. Executing the program in Google Colab
@@ -171,8 +171,8 @@ python3 ~/.../SGT_Analyser.py --checkerboard_nr 2 --first_well A01 A07 --last_we
 
 To make a Testrun of the program using the Google Colab environment please download either of the two example-files by clicking the following links:
 
-* <a href="https://github.com/DataSpott/SGT-Analysis/blob/master/Tecan_Sunrise_test_data.xlsx?raw=true">Tecan-Sunrise example-file</a>
-* <a href="https://github.com/DataSpott/SGT-Analysis/blob/master/Tecan_Infinite_test_data.xlsx?raw=true">Tecan-Infinite example-file</a>
+* <a href="https://github.com/DataSpott/SGT-Analysis/blob/master/example_data/tecan_sunrise_test_data.xlsx">Tecan-Sunrise example-file</a>
+* <a href="https://github.com/DataSpott/SGT-Analysis/blob/master/example_data/tecan_infinite_test_data.xlsx">Tecan-Infinite example-file</a>
 
 Alternatively download the example files directly from the Git-repository "SGT-Analysis".
 * For this enter the subdirectory "Example data" by double left-click.
