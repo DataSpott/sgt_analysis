@@ -1,4 +1,5 @@
 [![badge](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Cpu5RUhYFRMvXbHnd0GO4j274Fr2Dc6I#scrollTo=jl7JQA9i2cU_)
+[![DOI](https://zenodo.org/badge/278346524.svg)](https://zenodo.org/badge/latestdoi/278346524)
 
 # SGT-Analyser
 * by Riccardo Spott
