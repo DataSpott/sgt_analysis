@@ -37,7 +37,7 @@ You can make a Testrun by using the example data-files and parameters provided i
 
 ### 2.1. Getting started in Google Colab
 
-* To set the program up left-click the link [![badge](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DataSpott/SGT-Analysis/blob/master/sgt_analyser.ipynb)
+* To set the program up left-click the link [![badge](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Cpu5RUhYFRMvXbHnd0GO4j274Fr2Dc6I?authuser=1)
 * a new browser-tab will be opened, which is directed to the Colab environment, where the program is set up
 
 ### 2.2. Executing the program in Google Colab
