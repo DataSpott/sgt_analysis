@@ -123,6 +123,7 @@ docker run --rm -it -v $PWD:/input dataspott/sgt_analyser:v0.9.0 sgt_analyser.py
 docker run --rm -it -v $PWD:/input dataspott/sgt_analyser:v0.9.0
 ```
 > your command prompt will change to signalise that you are now in the container environment
+
 > ***--rm*** will delete the container after use; ***-it*** let's you interact with the container; ***-v*** $PWD:/input mounts your current working directory to the /input-directory in the container, so you can access files from your systems working directory inside this container-directory and vice versa. For further information see the docker documentation.
 
 * in both cases continue as described under *"3.2. Executing the program with Shell-commandline"*
