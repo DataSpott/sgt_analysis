@@ -1,4 +1,4 @@
-[![badge](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Cpu5RUhYFRMvXbHnd0GO4j274Fr2Dc6I#scrollTo=jl7JQA9i2cU_)
+[![badge](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Cpu5RUhYFRMvXbHnd0GO4j274Fr2Dc6I?authuser=1)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4028612.svg)](https://doi.org/10.5281/zenodo.4028612)
 
 # SGT-Analyser
