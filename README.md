@@ -29,7 +29,7 @@ In the following is described how to use either of this options.
 * start each block after the preceding, following the instrcutions given at the site
 
 ### Using *SGT-Analyser* in the terminal
-For the use of *SGT-Analyser* in your terminal there are two options:
+For the use of *SGT-Analyser* in your terminal there are two options.
 
 **1. Setup on your own system:**
 * clone this git-repository to your computer using the command
@@ -53,34 +53,20 @@ sudo apt install python3-pip
 8. IPython
 9. tqdm
 
-* to start the *SGT-Analyser* use the command
+* to start the *SGT-Analyser* use the following command in the repository directory
 ```bash
-python3 ~/.../sgt_analysis/sgt_analyser.py --help
+./sgt_analyser.py --help
 ```
 
 **2. Use the docker-container:**
 * make sure docker is installed at your system as described under https://docs.docker.com/get-docker/
-* use following command to pull the docker-image to your system:
+* use following command to pull the docker-image to your system, mount the current working directory to input and execute it
 ```bash
-docker pull dataspott/bioinformatic-tools:python_for_sgt_analyser
+docker run --rm -it -v $PWD:/input dataspott/sgt_analyser:v0.9.0 sgt_analyser.py -i /input/tecan_infinite_test_data.xlsx
 ```
-* check the ID of the image using the command:
+* to get help and see how to use the program use the following command
 ```bash
-docker images
-```
-* start either the container using the command:
-```bash
-docker run --rm -it Imgage-ID
-```
-* in the docker environment start the *SGT-Analyser* with the command: 
-```bash
-python3 sgt_analyser.py --help
-```
-
-**or**
-* start the *SGT_Analyser* directly when starting the container with the command:
-```bash
-docker run --rm -it Imgage-ID sgt_analyser.py --help
+docker run --rm -it -v $PWD:/input dataspott/sgt_analyser:v0.9.0 sgt_analyser.py --help
 ```
 
 ## Further information
