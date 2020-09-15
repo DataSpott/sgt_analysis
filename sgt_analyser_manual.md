@@ -112,31 +112,24 @@ sudo apt install python3-pip
 
 #### 3.1.2. Setting up the docker-image
 * make sure docker is installed at your system as described under https://docs.docker.com/get-docker/
-* use following command to pull the docker-image to your system:
+* use following command to pull the docker-image to your system & execute ***"SGT-Analyser"*** with the help-option
 ```bash
-docker pull dataspott/bioinformatic-tools:python_for_sgt_analyser
+docker run --rm -it -v $PWD:/input dataspott/sgt_analyser:v0.9.0 sgt_analyser.py --help
 ```
-* check the ID of the image using the command:
-```bash
-docker images
-```
-* start the container using the command:
-```bash
-docker run --rm -it Imgage-ID
-```
-* you will be directed to the container environment
-* continue as described under *"3.2. Executing the program with Shell-commandline"*
-
 **or**
-* start the ***"SGT-Analyser"*** directly when starting the container using the command:
+
+* pull the container to your system and start it using the command
 ```bash
-docker run --rm -it Imgage-ID sgt_analyser.py --FLAGS
+docker run --rm -it -v $PWD:/input dataspott/sgt_analyser:v0.9.0
 ```
-* use the flags as described under *"3.2. Executing the program with Shell-commandline"*
+* your command prompt will change to signalise that you are now in the container environment
+> --rm will delete the container after use; -it let's you interact with the container; -v $PWD:/input mounts your current working directory to the /input-directory in the container, so you can access files from your systems working directory inside this container-directory and vice versa. For further information see the docker documentation.
+
+* continue as described under *"3.2. Executing the program with Shell-commandline"*
 
 ### 3.2. Executing the program with Shell-commandline
 
-* use *"python3 sgt_analyser.py"* with the following flags to analyse your Excel-file:
+* use *"sgt_analyser.py"* with the following flags to analyse your Excel-file:
 
 **This flags are required and specify your parameters**
 
@@ -170,9 +163,13 @@ docker run --rm -it Imgage-ID sgt_analyser.py --FLAGS
 * using the optional flag *--use_linea_area* **or** *-u* in combination with *--upper_boundary* and *--lower_boundary* let you set a linear area over all growth-curves to calculate µ 
 * write the corresponding parameters behind each flag as shown in the following example:
 
-Example:
+Example for the use at your own system:
 ```bash
-python3 ~/sgt_analysis/sgt_analyser.py --checkerboard_nr 2 --first_well A01 A07 --last_well G06 G12 --log_time 70 --antibiotic_one_name Nitroxolin --antibiotic_one_conc 0 4 8 16 32 64 128 --antibiotic_two_name Dalbavancin --antibiotic_two_conc 0 0.5 1 2 4 8 --input ~/.../sgt_analyser/example_data/tecan_sunrise_test_data.xlsx --cut_off 0.6 --output ~/.../sgt_analyser --use_linear_area --upper_boundary 0.6 --lower_boundary 0.4
+sgt_analyser.py --checkerboard_nr 2 --first_well A01 A07 --last_well G06 G12 --log_time 70 --antibiotic_one_name Nitroxolin --antibiotic_one_conc 0 4 8 16 32 64 128 --antibiotic_two_name Dalbavancin --antibiotic_two_conc 0 0.5 1 2 4 8 --input ~/.../sgt_analyser/example_data/tecan_sunrise_test_data.xlsx --cut_off 0.6 --output ~/results --use_linear_area --upper_boundary 0.6 --lower_boundary 0.4
+```
+Example for the use in the docker-container:
+```bash
+sgt_analyser.py --checkerboard_nr 2 --first_well A01 A07 --last_well G06 G12 --log_time 70 --antibiotic_one_name Nitroxolin --antibiotic_one_conc 0 4 8 16 32 64 128 --antibiotic_two_name Dalbavancin --antibiotic_two_conc 0 0.5 1 2 4 8 --input /input/tecan_sunrise_test_data.xlsx --cut_off 0.6 --output /input --use_linear_area --upper_boundary 0.6 --lower_boundary 0.4
 ```
 
 * confirm the command
