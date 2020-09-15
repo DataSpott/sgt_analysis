@@ -28,8 +28,8 @@ In the following is described how to use either of this options.
 * You will be directed to a Google Colab-site, where the program is setup
 * start each block after the preceding, following the instrcutions given at the site
 
-### Using *SGT_Analyser* in the terminal
-For the use of *SGT_Analyser* in your terminal there are two options:
+### Using *SGT-Analyser* in the terminal
+For the use of *SGT-Analyser* in your terminal there are two options:
 
 **1. Setup on your own system:**
 * clone this git-repository to your computer using the command
@@ -53,7 +53,7 @@ sudo apt install python3-pip
 8. IPython
 9. tqdm
 
-* to start the *SGT_Analyser* use the command
+* to start the *SGT-Analyser* use the command
 ```bash
 python3 ~/.../sgt_analysis/sgt_analyser.py --help
 ```
@@ -72,7 +72,7 @@ docker images
 ```bash
 docker run --rm -it Imgage-ID
 ```
-* in the docker environment start the *SGT_Analyser* with the command: 
+* in the docker environment start the *SGT-Analyser* with the command: 
 ```bash
 python3 sgt_analyser.py --help
 ```
@@ -84,4 +84,4 @@ docker run --rm -it Imgage-ID sgt_analyser.py --help
 ```
 
 ## Further information
-Detailed instructions about the setup and use of *"SGT_Anaylser"* can be found in the manual provided in this repository.
+Detailed instructions about the setup and use of *"SGT-Anaylser"* can be found in the manual provided in this repository.
