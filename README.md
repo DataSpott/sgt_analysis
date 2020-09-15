@@ -70,4 +70,4 @@ docker run --rm -it -v $PWD:/input dataspott/sgt_analyser:v0.9.0 sgt_analyser.py
 ```
 
 ## Further information
-Detailed instructions about the setup and use of *"SGT-Anaylser"* can be found in the manual provided in this repository.
+Detailed instructions about the setup and use of *"SGT-Analyser"* can be found in the manual provided in this repository.
