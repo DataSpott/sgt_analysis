@@ -60,7 +60,7 @@ sudo apt install python3-pip
 
 **2. Use the docker-container:**
 * make sure docker is installed at your system as described under https://docs.docker.com/get-docker/
-* use following command to pull the docker-image to your system, mount the current working directory to input and execute it
+* use following command to pull the docker-image to your system, mount all data in the current directory to *"/input"* in the container and execute it
 ```bash
 docker run --rm -it -v $PWD:/input dataspott/sgt_analyser:v0.9.0 sgt_analyser.py -i /input/tecan_infinite_test_data.xlsx
 ```
