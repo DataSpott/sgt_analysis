@@ -119,7 +119,7 @@ docker run --rm -it -v $PWD:/input dataspott/sgt_analyser:v0.9.0 sgt_analyser.py
 
 * pull the container to your system and start it using the command
 ```bash
-docker run --rm -it -v $PWD:/input dataspott/sgt_analyser:v0.9.0
+docker run --rm -it -v $PWD:/input dataspott/sgt_analyser:v0.9.1
 ```
 > your command prompt will change to signalise that you are now in the container environment
 
