@@ -6,7 +6,7 @@
 
 ## Cite as
 
-> Spott, Riccardo, & Brandt, Christian. (2020, September 14). SGT-Analyser: A tool to automatically analyse antibiotic-synergism via bacterial growth-curves (checkerboards) (Version v0.9.0). Zenodo. http://doi.org/10.5281/zenodo.4028612
+> Spott, Riccardo, & Brandt, Christian. (2020, September 25). SGT-Analyser: A tool to automatically analyse antibiotic-synergism via bacterial growth-curves (checkerboards) (Version v0.9.1). Zenodo. http://doi.org/10.5281/zenodo.4050080
 
 ## What is SGT-Analyser?
 The SGT-Analyser is an tool for the automated analysis of growth-curves of, in an checkerboard-style treated bacteria.
