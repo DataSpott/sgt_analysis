@@ -42,16 +42,10 @@ git clone https://github.com/DataSpott/SGT-Analysis.git
 sudo apt install python3-pip
 ```
 
-* use "pip3 install module_name" to install the following modules in your terminal
-1. pandas
-2. altair
-3. xlrd
-4. altair_saver
-5. selenium
-6. scipy
-7. tabulate
-8. IPython
-9. tqdm
+* use the following command to set up the necessary python-modules
+```bash
+pip3 install pandas altair xlrd altair_saver selenium scipy tabulate IPython
+```
 
 * to start the *SGT-Analyser* use the following command in the repository directory
 ```bash
@@ -62,11 +56,11 @@ sudo apt install python3-pip
 * make sure docker is installed at your system as described under https://docs.docker.com/get-docker/
 * use following command to pull the docker-image to your system, mount all data in the current directory to *"/input"* in the container and execute it
 ```bash
-docker run --rm -it -v $PWD:/input dataspott/sgt_analyser:v0.9.0 sgt_analyser.py -i /input/tecan_infinite_test_data.xlsx
+docker run --rm -it -v $PWD:/input dataspott/sgt_analyser:v0.9.1 sgt_analyser.py -i /input/tecan_infinite_test_data.xlsx
 ```
 * to get help and see how to use the program use the following command
 ```bash
-docker run --rm -it -v $PWD:/input dataspott/sgt_analyser:v0.9.0 sgt_analyser.py --help
+docker run --rm -it -v $PWD:/input dataspott/sgt_analyser:v0.9.1 sgt_analyser.py --help
 ```
 
 ## Further information
