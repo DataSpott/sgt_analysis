@@ -143,15 +143,17 @@ docker run --rm -it -v $PWD:/input dataspott/sgt_analyser:v0.9.0
 8. --antibiotic_two_conc
 9. --input **or** -i
 10. --cut_off
+11. --method **or** -m
+
+> the --method **or** -m flag gives you the choice between three different tangent-fitting-methods for the µ-calculation: *cut_off*, *linear_area* and *µ_max*
 
 **This flags are optional**
 
 11. --output **or** -o
-11. --use_linear_area **or** -u
 12. --upper_boundary
 13. --lower_boundary
 
-> If you use the optional flag --use_linear_area or -u you also need to use the flags --upper_boundary and --lower_boundary
+> If you use the method-flag choice *"linear_area"* you also need to use the flags --upper_boundary and --lower_boundary
 
 **For help use the flag:**
 
@@ -165,11 +167,11 @@ docker run --rm -it -v $PWD:/input dataspott/sgt_analyser:v0.9.0
 
 Example for the use at your own system:
 ```bash
-sgt_analyser.py --checkerboard_nr 2 --first_well A01 A07 --last_well G06 G12 --log_time 70 --antibiotic_one_name Nitroxolin --antibiotic_one_conc 0 4 8 16 32 64 128 --antibiotic_two_name Dalbavancin --antibiotic_two_conc 0 0.5 1 2 4 8 --input ~/.../sgt_analyser/example_data/tecan_sunrise_test_data.xlsx --cut_off 0.6 --output ~/results --use_linear_area --upper_boundary 0.6 --lower_boundary 0.4
+sgt_analyser.py --checkerboard_nr 2 --first_well A01 A07 --last_well G06 G12 --control_well A01 A07 --log_time 70 --antibiotic_one_name Nitroxolin --antibiotic_one_conc 0 4 8 16 32 64 128 --antibiotic_two_name Dalbavancin --antibiotic_two_conc 0 0.5 1 2 4 8 --input ~/.../sgt_analyser/example_data/tecan_sunrise_test_data.xlsx --cut_off 0.6 --output ~/results --method linear_area --upper_boundary 0.6 --lower_boundary 0.4
 ```
 Example for the use in the docker-container:
 ```bash
-sgt_analyser.py --checkerboard_nr 2 --first_well A01 A07 --last_well G06 G12 --log_time 70 --antibiotic_one_name Nitroxolin --antibiotic_one_conc 0 4 8 16 32 64 128 --antibiotic_two_name Dalbavancin --antibiotic_two_conc 0 0.5 1 2 4 8 --input /input/tecan_sunrise_test_data.xlsx --cut_off 0.6 --output /input --use_linear_area --upper_boundary 0.6 --lower_boundary 0.4
+sgt_analyser.py --checkerboard_nr 2 --first_well A01 A07 --last_well G06 G12 --control_well A01 A07 --log_time 70 --antibiotic_one_name Nitroxolin --antibiotic_one_conc 0 4 8 16 32 64 128 --antibiotic_two_name Dalbavancin --antibiotic_two_conc 0 0.5 1 2 4 8 --input /input/tecan_sunrise_test_data.xlsx --cut_off 0.6 --output /input --method linear_area --upper_boundary 0.6 --lower_boundary 0.4
 ```
 
 * confirm the command
@@ -200,12 +202,13 @@ If you instead run the program in the commandline (either on your own system or 
 |board_count | 2|
 |first_wells | A01, A07|
 |last_wells | G06, G12|
+|control_wells| A01, A07|
 |log_time | 70|
 |antibiotic_one_name | Nitroxoline|
 |antibiotic_two_name | Dalbavancin|
 |antibiotic_one_conc | 0, 4, 8, 16, 32, 64, 128|
 |antibiotic_two_conc | 0, 0.5, 1, 2, 4, 8|
 |cut_off | 0.6|
-|upper_border| 0.6| only necessary if the box "use_linear_area" is ticked|
-|lower_border| 0.4| only necessary if the box "use_linear_area" is ticked|
+|upper_border| 0.6| only necessary if the tangent-fitting-method "linear_area" was chosen|
+|lower_border| 0.4| only necessary if the tangent-fitting-method "linear_area" was chosen|
 
