@@ -167,7 +167,7 @@ docker run --rm -it -v $PWD:/input dataspott/sgt_analyser:v0.9.0
 
 Example for the use at your own system:
 ```bash
-sgt_analyser.py --checkerboard_nr 2 --first_well A01 A07 --last_well G06 G12 --control_well A01 A07 --log_time 70 --antibiotic_one_name Nitroxolin --antibiotic_one_conc 0 4 8 16 32 64 128 --antibiotic_two_name Dalbavancin --antibiotic_two_conc 0 0.5 1 2 4 8 --input ~/.../sgt_analyser/example_data/tecan_sunrise_test_data.xlsx --cut_off 0.6 --output ~/results --method linear_area --upper_boundary 0.6 --lower_boundary 0.4
+./sgt_analyser.py --checkerboard_nr 2 --first_well A01 A07 --last_well G06 G12 --control_well A01 A07 --log_time 70 --antibiotic_one_name Nitroxolin --antibiotic_one_conc 0 4 8 16 32 64 128 --antibiotic_two_name Dalbavancin --antibiotic_two_conc 0 0.5 1 2 4 8 --input ~/.../sgt_analyser/example_data/tecan_sunrise_test_data.xlsx --cut_off 0.6 --output ~/results --method linear_area --upper_boundary 0.6 --lower_boundary 0.4
 ```
 Example for the use in the docker-container:
 ```bash
