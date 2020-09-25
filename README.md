@@ -1,4 +1,4 @@
-[![badge](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Cpu5RUhYFRMvXbHnd0GO4j274Fr2Dc6I?authuser=1)
+[![badge](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DataSpott/sgt_analysis/blob/master/sgt_analyser.ipynb\)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4028612.svg)](https://doi.org/10.5281/zenodo.4028612)
 
 # SGT-Analyser
@@ -14,7 +14,7 @@ The goal is to determine synergistic, additional or antagonistic effects between
 For this the so called *"Start Growth Time"*-method is used.
 
 ## Getting started
-You can use this program either in [Google Colab](https://colab.research.google.com/drive/1Cpu5RUhYFRMvXbHnd0GO4j274Fr2Dc6I?authuser=1) or in your terminal.
+You can use this program either in [Google Colab](https://colab.research.google.com/github/DataSpott/sgt_analysis/blob/master/sgt_analyser.ipynb\) or in your terminal.
 The use via Google Colab is suited for non-informaticians and
 provides a graphical interface to interact with.
 To use the terminal-variant some informatical knowledge is required 
@@ -24,7 +24,7 @@ Further you will need an Excel-file with the data of your growth curves
 In the following is described how to use either of this options.
 
 ### Using *SGT_Analyser* in Google Colab
-* use the link *["Open in Colab"](https://colab.research.google.com/drive/1Cpu5RUhYFRMvXbHnd0GO4j274Fr2Dc6I?authuser=1)*
+* use the link *["Open in Colab"](https://colab.research.google.com/github/DataSpott/sgt_analysis/blob/master/sgt_analyser.ipynb\)*
 * You will be directed to a Google Colab-site, where the program is setup
 * start each block after the preceding, following the instrcutions given at the site
 
