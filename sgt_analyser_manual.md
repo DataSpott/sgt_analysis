@@ -184,8 +184,8 @@ sgt_analyser.py --checkerboard_nr 2 --first_well A01 A07 --last_well G06 G12 --l
 
 To make a Testrun of the program using the Google Colab environment please download either of the two example-files by clicking the following links:
 
-* <a href="https://github.com/DataSpott/SGT-Analysis/blob/master/example_data/tecan_sunrise_test_data.xlsx">Tecan-Sunrise example-file</a>
-* <a href="https://github.com/DataSpott/SGT-Analysis/blob/master/example_data/tecan_infinite_test_data.xlsx">Tecan-Infinite example-file</a>
+* <a href="https://github.com/DataSpott/sgt_analysis/raw/master/example_data/tecan_sunrise_test_data.xlsx">Tecan-Sunrise example-file</a>
+* <a href="https://github.com/DataSpott/sgt_analysis/raw/master/example_data/tecan_infinite_test_data.xlsx">Tecan-Infinite example-file</a>
 
 Alternatively if you cloned the repository or use the docker-image both example files are directly included in the subdirectory *"example_data"* in the *"sgt_analysis"*-directory.
 
