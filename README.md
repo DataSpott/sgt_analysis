@@ -1,4 +1,4 @@
-[![badge](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DataSpott/sgt_analysis/blob/master/sgt_analyser.ipynb\)
+[![badge](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DataSpott/sgt_analysis/blob/master/sgt_analyser.ipynb)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4028612.svg)](https://doi.org/10.5281/zenodo.4028612)
 
 # SGT-Analyser
