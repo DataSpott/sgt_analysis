@@ -9,11 +9,14 @@ The program ***"SGT-Analyser"*** uses the "Start Growth Time"-methode to analyse
 
 By uploading an excel-dataset and defining the checkerboard as well as the antibiotics the program caluclates first the SGT-value of each well on the checkerboard and consequential the log-level-reduction of each well and the "Fractional Inhibitory Concentration Index" (FICI)-average for each checkerboard.
 
-The layouts of the checkerboards at the well-plate are determined by using information about the first and last well of the board. The first well refers to the well in the upper left corner and should be your control (-> concentration of both antibiotics = 0 µg/ml). The last well describes the well in the lower right corner of the board. The layout is for better understanding also illustrated in the following image 1.
+The layouts of the checkerboards at the well-plate are determined by using information about the first and last well of the board as well as about the control-wells. The first well refers to the well in the upper left corner, whereas the last well describes the well in the lower right corner of the board. The layout is for better understanding also illustrated in the following image 1.
 
 ![Checkerboard-blueprint wasn´t able to load...](https://raw.githubusercontent.com/DataSpott/SGT-Analysis/master/pictures/checkerboard_blueprint_with_description.png "Checkerboard-Blueprint")
 
-The user can choose if the, for the calculations needed, µ-value is calculated automatically or if a manual input of a linear area over all growth-curves shall be used for the calculations.
+The user can choose from three different methods to fit a tangent to the growth-curves for the calculation of the µ-value. These are:
+* the automatic fitting of an tangent to each growth-curve at the provided cut-off-value (= OD-Threshold).
+* determining manually a linear area over all growth-curves, in which the tangent is fitted.
+* the automatic fitting of an tangent at the µ(max)-value of each growth-curve 
 
 To calculate the FICI-average the program uses the respectively first wells of each row and column of a checkerboard, that reached a log-level-reduction of equal to or more than 3 log-levels.
 
@@ -70,8 +73,9 @@ In this case just click the Play-Button again.
 * the program will calculate a fitting sigmoid-curve for every well and, once finished, plot the raw data and fitted curve of each well
 
 **4. Compute SGT-method & plot results**
-* insert the Cut-Off-value for the OD in the fourth block 
-* if you want to manually set a linear area from which the µ for the calculations is taken tick the box and insert a upper and lower border for the area
+* choose a tangent-fitting-method from the dropdown menu
+* insert the Cut-Off-value for the OD in the fourth block
+* if you chose the *"linear_area"*-method insert a upper and lower boundary-value
 * start the fourth block by left-clicking the Play-button
 * the program will calculate the SGT, log-level-reduction and FICI-average and print the results for each checkerboard as well as plots the resulting diagram for each well
 
@@ -98,15 +102,10 @@ To use the ***"SGT-Analyser"*** in the shell-commandline you can either setup al
 sudo apt install python3-pip
 ```
 
-* use "pip3 install modul_name" to set up the following modules:
-1. pandas
-2. altair
-3. xlrd
-4. altair_saver
-5. selenium
-6. scipy
-7. tabulate
-8. IPython
+* use the following command to set up the necessary python-modules
+```bash
+pip3 install pandas altair xlrd altair_saver selenium scipy tabulate IPython
+```
 
 * navigate to the directory of the repository using your commandline and continue with the instructions under *"3.2. Executing the program with Shell-commandline"*
 
