@@ -1,0 +1,23 @@
+v0.10.0 Changelog:
+- added a class with a function to silently stop the execution of an code-block (for example if a user-input doesn´t fullfill the requirements)(only Colab-Version)
+- added a disengageable option to define wells containing a standard-curve per checkerboard 
+- added a filter before the calculation of the FICI-average, deleting "not computable"-values from the "board_fici_values"-list
+- added a filter to "µ_calc_by_boundaries"-function to choose the max/min-value if there are multiple elements closest to the upper/lower boundary (especially the case when a growth-curve = zero curve)
+- added a filter, which deletes all wells which aren´t included in a checkerboard or the associated control/standard-wells from the first dataframe -> only defined wells will get plotted and calculated
+- added an if-statement in the "BBC_well_determination"-function to exclude wells, which log-level-reduction-value is a comment (= str)
+- added an if-statement in the "BBC_determination_per_board"-function for each antibiotic-list to insert a comment "no BBC found" if the returned list is empty
+- added an if-statement in the "FICI_finder_per_board"-function to check if wells with fici-values are existant or not & to return a list with comments if not
+- added an if-statement in the "find_µ_max"-function to set a comment instead of an value for µ_max if all µ-values are <= 0
+- added an if-statement to check if FICI-values were calculated & if not an comment is added
+- added an if-statement to check if there are any intersection-points between the growth-curves & the chosen CutOff-value when using the "µ-calculation via CutOff"-method, which stops the script with an appropriate message if no points were found
+- added an if-statement to check if there are any wells of the actual checkerboard in the dataframe "data_fici_values" and if not to overwrite the dataframe-part before printing the results to the console
+- added an if-statement to the "fici_calc"-function to check if BBCs for both antibiotics exist & they aren´t 0
+- added an if-statement to "µ_calc_by_boundaries"-function to check if µ is <= 0 & if true write a comment in µ instead
+- changed equations in "µ_calc_by_boundaries"-function to get dinstinct single-element outputs instead of single element numpy-arrays
+- added an if-statement to notify the user if the number of given control-wells doesn´t match the number of checkerboards
+- added an if-statement to notify the user if the number of given standard-curve-wells doesn´t match the number of checkerboards
+- added an if-statement to notify the user if the upper/lower boundary is set to high/low for the fitted curves if the "linear_area" µ-calculation-method is used
+- added option to choose which files shall get downloaded (only Colab-version)
+- corrected the calculation for the mean of the sgt-value of multiple controls in the "log_calc"-function
+- increased "maxFev" in the sigmoid-fitting method to fit  also growth-curves which don´t form a sigmoid shape naturally
+- updated the "log_calc"-function so instead of checking if a well is left/right or upon/beneath the actual checkerboard the function now checks if it´s part of the control- or if used std-curve-wells after checking that it´s not part of the actual checkerboard itself 
