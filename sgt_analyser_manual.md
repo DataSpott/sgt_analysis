@@ -150,8 +150,12 @@ docker run --rm -it -v $PWD:/input dataspott/sgt_analyser:v0.9.1
 **This flags are optional**
 
 11. --output **or** -o
-12. --upper_boundary
-13. --lower_boundary
+12. --include_std_curve
+13. --std_curve_wells
+13. --upper_boundary
+14. --lower_boundary
+
+> If you use the flag --include_std_curve you also need to use the flag --std_curve_wells
 
 > If you use the method-flag choice *"linear_area"* you also need to use the flags --upper_boundary and --lower_boundary
 
