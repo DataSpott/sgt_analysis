@@ -49,7 +49,7 @@ pip3 install pandas altair xlrd altair_saver selenium scipy tabulate IPython
 
 * to start the *SGT-Analyser* use the following command in the repository directory
 ```bash
-./sgt_analyser.py --help
+$PWD/sgt_analyser.py --help
 ```
 
 **2. Use the docker-container:**
