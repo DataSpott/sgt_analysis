@@ -32,6 +32,8 @@ parser.add_argument('--checkerboard_nr', help = "Number of Checkerboards at the 
 parser.add_argument('--first_well', nargs = '+', help = "First wells of all checkerboards on the plate (left upper corner, should be your control)", required = True)
 parser.add_argument('--last_well', nargs = '+', help = "Last wells of all Checkerboards on the plate (right lower corner)", required = True)
 parser.add_argument('--control_well', nargs = '+', help = "Control wells of all checkerboards on the plate (if more then one control-well was used, write all control-wells of one board comma-separated without whitespaces & separate each block with whitespace)", required = True)
+parser.add_argument('--include_std_curve', action='store_true', help = "Choose if you want to include wells with a std-curve per checkerboard.", default = False)
+parser.add_argument('--std_curve_wells', nargs = '+', help = "Std-curve wells of all checkerboards on the plate. Write all std-curve-wells of one board comma-separated without whitespaces & separate each block with whitespace")
 parser.add_argument('--log_time', help = "Time in [min] that the investigated bacteria needs to grow one log-level", required = True)
 parser.add_argument('--antibiotic_one_name', help = "Name of the first antibiotic", default = 'Antibiotic 1')
 parser.add_argument('--antibiotic_one_conc', nargs = '+', help = "Concentrations of the first antibiotic", required = True)
@@ -46,6 +48,11 @@ parser.add_argument('-o', '--output', help = "Name of the output-directory", def
 
 #parsing:
 arg = parser.parse_args()
+
+#check if std-curve-wells were given when using the "inlcude_std_curve"-flag is
+#used:
+if arg.include_std_curve and arg.std_curve_wells is None:
+    parser.error('--include_std_curve requires --std_curve_wells.')
 
 #check if a upper & lower boundary were given when using the manual linear area:
 if arg.method == 'linear_area' and (arg.upper_boundary is None or arg.lower_boundary is None):
@@ -65,6 +72,11 @@ input_file = arg.input
 cut_off = float(arg.cut_off)
 tangent_fitting_method = arg.method
 output_path = arg.output
+include_std_curve = arg.include_std_curve
+
+if arg.include_std_curve == True:
+
+    std_curve_wells = arg.std_curve_wells
 
 if arg.method == 'linear_area':
 
@@ -82,6 +94,9 @@ last_wells = [element for element in last_wells if element]
 
 control_wells = [element.split(',') for element in control_wells]
 
+if include_std_curve == True:
+    std_curve_wells = [element.split(',') for element in std_curve_wells]
+
 antibiotic_one_conc = [element.split(',') for element in antibiotic_one_conc]
 antibiotic_one_conc = [inner for outer in antibiotic_one_conc for inner in outer]
 antibiotic_one_conc = [element for element in antibiotic_one_conc if element]
@@ -90,25 +105,21 @@ antibiotic_two_conc = [element.split(',') for element in antibiotic_two_conc]
 antibiotic_two_conc = [inner for outer in antibiotic_two_conc for inner in outer]
 antibiotic_two_conc = [element for element in antibiotic_two_conc if element]
 
-#check if number of checkerboards matches number of given first & last wells:
-if len(first_wells) > board_count:
-    print('To many first wells for checkerboards on plate.')
-elif len(first_wells) < board_count:
-    print('To less first wells for checkerboards on plate.')
+# #check if number of checkerboards matches number of given first & last wells:
+# if len(first_wells) > board_count:
+#     print('To many first wells for checkerboards on plate.')
+# elif len(first_wells) < board_count:
+#     print('To less first wells for checkerboards on plate.')
 
-if len(last_wells) > board_count:
-    print('To many last wells for checkerboards on plate.')
-elif len(last_wells) < board_count:
-    print('To less last wells for checkerboards on plate.')
+# if len(last_wells) > board_count:
+#     print('To many last wells for checkerboards on plate.')
+# elif len(last_wells) < board_count:
+#     print('To less last wells for checkerboards on plate.')
 
-checkerboards = []
+# checkerboards = []
 
-for board in range(board_count):
-    checkerboards.append([board, first_wells[board], last_wells[board], control_wells[board]])
-
-#check if output-directory exists & create a Results-directory in it:
-output_path = str(output_path) + '/SGT_Analysis_Results'
-os.makedirs(output_path, exist_ok = True)
+# for board in range(board_count):
+#     checkerboards.append([board, first_wells[board], last_wells[board], control_wells[board]])
 
 #check if cut-off-mehod is used:
 if tangent_fitting_method == 'cut_off':
@@ -149,7 +160,7 @@ def curve_fit_calc(dataframe, actual_well):
     p0 = [y_max, x0, k, y_min]
         
     #curve_fit:
-    popt, pcov = curve_fit(sigmoid, x_data, y_data, p0, maxfev=100000)
+    popt, pcov = curve_fit(sigmoid, x_data, y_data, p0, maxfev = 1000000)
 
     #get fitted function from optimized parameters:
     fitted_y = sigmoid(x_data, *popt)
@@ -215,7 +226,7 @@ def find_nearest(given_array, given_value):
 #defines function to calculate µ for the linear area of each growth-curve given  
 #by the upper and lower boundary:
 def µ_calc_by_boundaries(dataframe, actual_well, upper_boundary, lower_boundary):
-            
+          
     actual_dataframe_part = dataframe[dataframe['Well'] == actual_well]
 
     fitted_value_array = actual_dataframe_part['Fitted Value'].values
@@ -227,26 +238,36 @@ def µ_calc_by_boundaries(dataframe, actual_well, upper_boundary, lower_boundary
 
     upper_time_index = np.where(fitted_value_array == nearest_upper_boundary)
     lower_time_index = np.where(fitted_value_array == nearest_lower_boundary)
+    
+    if len(upper_time_index[0]) > 1:
+        upper_time_index = np.array([np.max(upper_time_index[0])])
+    if len(lower_time_index[0]) > 1:
+        lower_time_index = np.array([np.min(lower_time_index[0])])
 
     #searches the corresponding times to the boundary-closest fitted values:
     time_array = actual_dataframe_part['Time'].values
-    upper_time = np.ndarray.item(time_array[upper_time_index])
-    lower_time = np.ndarray.item(time_array[lower_time_index])
-
+    
+    upper_time = time_array[upper_time_index][0]
+    lower_time = time_array[lower_time_index][0]
+    
     #calculate delta_x & delta_y:
-    delta_x = np.subtract(upper_time, lower_time)
-    delta_y = (nearest_upper_boundary - nearest_lower_boundary)
+    delta_x = upper_time - lower_time
+    delta_y = nearest_upper_boundary - nearest_lower_boundary
 
     #check if division by 0 occured:
     if delta_x != 0:
         
         #if FALSE calculate µ:
         µ = (delta_y/delta_x)
+        
+        #check if calculated µ is <= 0 & if TRUE write a comment in µ:
+        if µ <= 0.0:
+            µ = 'µ <= 0'
 
     #if TRUE write a comment in µ:
     else:
         µ = 'division by 0'
-
+    
     return actual_well, upper_boundary, upper_time, lower_boundary, lower_time, µ
 
 
@@ -278,8 +299,18 @@ def find_µ_max(given_array):
     µ_max_index = np.where(given_array[1] == µ_max)
     
     #get to µ_max corresponding time in the array;
-    µ_max_time = np.ndarray.item(given_array[2][µ_max_index])
+    # µ_max_time = np.ndarray.item(given_array[2][µ_max_index])
+    µ_max_time = given_array[2][µ_max_index]
 
+    if len(µ_max_time) > 1:
+        µ_max_time = np.amax(µ_max_time)
+    
+    else:
+        µ_max_time = µ_max_time[0]
+    
+    if µ_max <= 0:
+        µ_max = 'µ <= 0'
+    
     return well, µ_max_time, µ_max
 
 
@@ -316,7 +347,7 @@ def SGT_calc(dataframe, actual_row, cut_off_value):
     #setup initial data:
     µ_max = dataframe.loc[actual_row, 'µ_max']
     y0 = dataframe.loc[actual_row, 'y0']
-
+    
     #check if µ_max is no string:
     if type(µ_max) != str:
         
@@ -331,8 +362,10 @@ def SGT_calc(dataframe, actual_row, cut_off_value):
 
 
 #defines function to calculate the log-level-reduction for a row of a dataframe:
-def log_calc(dataframe, actual_row, first_well, last_well, control_well, 
-             antibiotic_rows_conc, antibiotic_columns_conc, actual_board, board_count):
+def log_calc(dataframe, actual_row, first_well, last_well, control_well,
+             antibiotic_rows_conc, antibiotic_columns_conc,
+             actual_board, board_count, include_std_curve_wells = False,
+             std_curve_wells = '-'):
     
     #initially set availabilty of well- & control-sgt to FALSE:
     control_sgt_available = False
@@ -380,8 +413,7 @@ def log_calc(dataframe, actual_row, first_well, last_well, control_well,
             #if there is at least one sgt-value set variable to TRUE and
             #calculate control-sgt:
             control_sgt_available = True
-            sgt_of_control_well = sum(sgt_of_control_well_list)
-
+            sgt_of_control_well = (sum(sgt_of_control_well_list)/len(sgt_of_control_well_list))
 
     #check if well is in the limits of the checkerboard:
     if  actual_well_letter >= first_well[0] and actual_well_letter <= last_well[0]:
@@ -396,14 +428,20 @@ def log_calc(dataframe, actual_row, first_well, last_well, control_well,
                 log_level_reduction = round((SGT_subtracted_value / log_time), 1)
             
                 #determine antibiotic-concentrations:
-                first_antibiotic_index = (ord(actual_well_letter)
-                                          - ord(first_well[0]))
-                first_antibiotic_concentration = float(antibiotic_rows_conc[first_antibiotic_index])
-                
-                second_antibiotic_index = int(actual_well_number
-                                              - ((12 / board_count)
-                                              * actual_board)) - 1
-                second_antibiotic_concentration = float(antibiotic_columns_conc[second_antibiotic_index])
+                if actual_well_name in control_well:
+                    
+                    first_antibiotic_concentration = 0
+                    second_antibiotic_concentration = 0
+
+                else:
+                    first_antibiotic_index = (ord(actual_well_letter)
+                                              - ord(first_well[0]))
+                    first_antibiotic_concentration = float(antibiotic_rows_conc[first_antibiotic_index])
+                    
+                    second_antibiotic_index = int(actual_well_number
+                                                  - ((12 / board_count)
+                                                  * actual_board)) - 1
+                    second_antibiotic_concentration = float(antibiotic_columns_conc[second_antibiotic_index])
 
                 return [actual_well_name, SGT_subtracted_value, 
                     log_level_reduction, first_antibiotic_concentration, 
@@ -414,14 +452,21 @@ def log_calc(dataframe, actual_row, first_well, last_well, control_well,
                 
                 SGT_subtracted_value = 'not computable'
                 log_level_reduction = 'not computable'
-                first_antibiotic_index = (ord(actual_well_letter) 
-                                          - ord(first_well[0]))
-                first_antibiotic_concentration = float(antibiotic_rows_conc[first_antibiotic_index])
                 
-                second_antibiotic_index = (int(actual_well_number
-                                               - ((12 / board_count)
-                                               * actual_board)) - 1)
-                second_antibiotic_concentration = float(antibiotic_columns_conc[second_antibiotic_index])
+                if actual_well_name in control_well:
+
+                    first_antibiotic_concentration = 0
+                    second_antibiotic_concentration = 0
+
+                else:
+                    first_antibiotic_index = (ord(actual_well_letter) 
+                                              - ord(first_well[0]))
+                    first_antibiotic_concentration = float(antibiotic_rows_conc[first_antibiotic_index])
+                    
+                    second_antibiotic_index = (int(actual_well_number
+                                                  - ((12 / board_count)
+                                                  * actual_board)) - 1)
+                    second_antibiotic_concentration = float(antibiotic_columns_conc[second_antibiotic_index])
                 
                 return [actual_well_name, SGT_subtracted_value, 
                     log_level_reduction, first_antibiotic_concentration, 
@@ -431,9 +476,9 @@ def log_calc(dataframe, actual_row, first_well, last_well, control_well,
             
             return 'not on checkerboard'
 
-    #else check if actual well is over or under the checkerboard:
-    elif actual_well_letter <= first_well[0] or actual_well_letter >= last_well[0]:
-        if actual_well_number >= int(first_well[1:]) and actual_well_number <= int(last_well[1:]):
+    #else check if actual_well is the control_well/part of the control-wells of
+    #the actual checkerboard:
+    elif actual_well_name in control_well:
             
             #if TRUE check if the SGT-values of well & control are no strings:
             if well_sgt_available == True and control_sgt_available == True:
@@ -444,8 +489,8 @@ def log_calc(dataframe, actual_row, first_well, last_well, control_well,
                 log_level_reduction = round((SGT_subtracted_value / log_time), 1)
                 
                 #set string for antibiotic-concentrations:
-                first_antibiotic_concentration = '-'
-                second_antibiotic_concentration = '-'
+                first_antibiotic_concentration = 0
+                second_antibiotic_concentration = 0
 
                 return [actual_well_name, SGT_subtracted_value, 
                     log_level_reduction, first_antibiotic_concentration, 
@@ -455,19 +500,17 @@ def log_calc(dataframe, actual_row, first_well, last_well, control_well,
             else:
                 SGT_subtracted_value = 'not computable'
                 log_level_reduction = 'not computable'
-                first_antibiotic_concentration = '-'
-                second_antibiotic_concentration = '-'
+                first_antibiotic_concentration = 0
+                second_antibiotic_concentration = 0
                 
                 return [actual_well_name, SGT_subtracted_value, 
                     log_level_reduction, first_antibiotic_concentration, 
                     second_antibiotic_concentration]
-        else:
-            
-            return 'not on checkerboard'
 
-    #else check if actual well is left or right of the checkerboard:
-    elif actual_well_number <= int(first_well[1:]) or actual_well_number >= int(last_well[1:]):
-        if  actual_well_letter >= first_well[0] and actual_well_letter <= last_well[0]:
+    #else check if actual_well is part of the standard_curve_wells of the actual
+    #checkerboard (if option to use std-curve-wells is activated):
+    elif include_std_curve == True:
+        if actual_well_name in std_curve_wells:
             
             #if TRUE check if the SGT-values of well & control are no strings:
             if well_sgt_available == True and control_sgt_available == True:
@@ -506,7 +549,8 @@ def log_calc(dataframe, actual_row, first_well, last_well, control_well,
 
 #defines function to apply function 'log_calc' to every checkerboard:
 def board_iteration(dataframe, antibiotic_rows_conc_list, antibiotic_columns_conc_list,
-                    checkerboard_list, actual_board, board_count):
+                    include_std_curve_wells, checkerboard_list, actual_board, 
+                    board_count):
 
     #get row_count of the dataframe:
     row_count = dataframe.shape[0]
@@ -516,31 +560,48 @@ def board_iteration(dataframe, antibiotic_rows_conc_list, antibiotic_columns_con
     last_well = str(checkerboard_list[actual_board][2]).strip()
     control_well = checkerboard_list[actual_board][3]
 
-    #calls function 'log_calc' for every row in 'row_count':
-    calculated_values_for_board = (list(log_calc(dataframe, rows, first_well, 
-                                                 last_well, control_well, 
-                                                 antibiotic_rows_conc_list, 
-                                                 antibiotic_columns_conc_list, 
-                                                 actual_board, board_count) 
-                                        for rows in range(row_count)))
+    if include_std_curve_wells == True:
+        std_curve_wells = checkerboard_list[actual_board][4]
+
+        #calls function 'log_calc' for every row in 'row_count':
+        calculated_values_for_board = (list(log_calc(dataframe, rows, first_well, 
+                                                     last_well, control_well,
+                                                     antibiotic_rows_conc_list, 
+                                                     antibiotic_columns_conc_list, 
+                                                     actual_board, board_count,
+                                                     include_std_curve_wells,
+                                                     std_curve_wells) 
+                                            for rows in range(row_count)))
     
-    #removes list-entries from rows, whose well wasn´t at the checkerboard:
+    else:
+
+        #calls function 'log_calc' for every row in 'row_count':
+        calculated_values_for_board = (list(log_calc(dataframe, rows, first_well, 
+                                                     last_well, control_well,
+                                                     antibiotic_rows_conc_list, 
+                                                     antibiotic_columns_conc_list, 
+                                                     actual_board, board_count) 
+                                            for rows in range(row_count)))
+    
+    #removes list-entries from rows, whose well wasn´t at the actual 
+    #checkerboard:
     calculated_values_for_board = list(filter(('not on checkerboard').__ne__, 
                                               calculated_values_for_board))
     
     return calculated_values_for_board
 
 
-#defines function, which gets the first/second antibiotic-concentration for 
-#every row of a dataframe if the well is inside a specific boundary of the
-#checkerboard & accomplishs the log-level-reduction:
+#defines function, which gets the BBC of the first/second antibiotic by checking 
+#for every row of a dataframe if the well is inside a specific boundary (the
+#first row or first column) of the checkerboard & accomplishs the log-level-
+#reduction:
 def BBC_well_determination(dataframe, first_well, last_well,
                            first_antibiotic_column, second_antibiotic_column,
                            actual_row):
     
     well_name = str(dataframe.loc[actual_row, 'Well'])
     log_level_reduction = dataframe[dataframe['Well'] == well_name]['log-level-reduction'].values[0]
-
+    
     first_antibiotic_concentrations = []
     second_antibiotic_concentrations = []
 
@@ -548,19 +609,21 @@ def BBC_well_determination(dataframe, first_well, last_well,
     #log-level-reduction:
     if well_name[1:] == first_well[1:]:
         if well_name[0] >= first_well[0] and well_name[0] <= last_well[0]:
-            if log_level_reduction >= 3.0:
+            if type(log_level_reduction) != str:
+                if log_level_reduction >= 3.0:
 
-                #get concentration of the first antibiotic in this well:
-                first_antibiotic_concentrations.append(dataframe.loc[actual_row, first_antibiotic_column])
+                    #get concentration of the first antibiotic in this well:
+                    first_antibiotic_concentrations.append(dataframe.loc[actual_row, first_antibiotic_column])
 
     #check if well is within the limits of the checkerboard and accomplishs the
     #log-level-reduction:
     if well_name[0] == first_well[0]:
         if well_name[1:] >= first_well[1:] and well_name[1:] <= last_well[1:]:
-            if log_level_reduction >= 3.0:
-                
-                #get concentration of the second antibiotic in this well:
-                second_antibiotic_concentrations.append(dataframe.loc[actual_row, second_antibiotic_column])
+            if type(log_level_reduction) != str:
+                if log_level_reduction >= 3.0:
+                    
+                    #get concentration of the second antibiotic in this well:
+                    second_antibiotic_concentrations.append(dataframe.loc[actual_row, second_antibiotic_column])
     
     return first_antibiotic_concentrations, second_antibiotic_concentrations
 
@@ -595,38 +658,57 @@ def BBC_determination_per_board(dataframe, checkerboard_list,
     second_antibiotic_concentrations = [inner for outer in (element for element in second_antibiotic_concentrations 
                                                             if element != []) for inner in outer]
 
+    if len(first_antibiotic_concentrations) == 0:
+        first_antibiotic_concentrations.append('no BBC found')
+
+    if len(second_antibiotic_concentrations) == 0:
+        second_antibiotic_concentrations.append('no BBC found')
+
     return first_antibiotic_concentrations, second_antibiotic_concentrations
 
 
 #defines function, which calculates the FICI-value for an given well:
 def fici_calc(dataframe, actual_row, first_well, last_well, 
               first_antibiotic_bbc_on_actual_board, second_antibiotic_bbc_on_actual_board, 
-              name_of_first_antibiotic_column, name_of_second_antibiotic_column):
+              name_of_first_antibiotic_column, name_of_second_antibiotic_column,
+              BBC_values_exist):
     
     #get name of the actual well:
-    well_name = str(dataframe.at[actual_row, 'Well'])
+    well_name = str(dataframe.loc[actual_row, 'Well'])
     well_letter = well_name[0]
     well_number = int(well_name[1:])
 
     log_level_reduction = dataframe[dataframe['Well'] == well_name]['log-level-reduction'].values[0]
-
-    #check if well is in the limits of the checkerboarda and the log-level-
-    #reduction is >= 3:
-    if well_letter > first_well[0] and well_letter <= last_well[0]:
-        if well_number > int(first_well[1:]) and well_number <= int(last_well[1:]):
-            if type(log_level_reduction) != str:
-                if log_level_reduction >= 3.0:
-                    
-                    #if TRUE gets the actual concentrations of the first &
-                    #second antibiotic in the well:
-                    actual_first_antibiotic_concentration = dataframe[dataframe['Well'] == well_name][name_of_first_antibiotic_column].values[0]
-                    actual_second_antibiotic_concentration = dataframe[dataframe['Well'] == well_name][name_of_second_antibiotic_column].values[0]
-                    
-                    #calculates the FICI-value:
-                    well_fici_value = ((actual_first_antibiotic_concentration/first_antibiotic_bbc_on_actual_board)
-                                        + (actual_second_antibiotic_concentration/second_antibiotic_bbc_on_actual_board))
-
-                    return well_name, well_fici_value
+    
+    #check if both antibiotic-BBC-values exist:
+    if BBC_values_exist == True and first_antibiotic_bbc_on_actual_board != 0 and second_antibiotic_bbc_on_actual_board != 0:
+        
+        #check if well is in the limits of the checkerboarda and the log-level-
+        #reduction is >= 3:
+        if well_letter > first_well[0] and well_letter <= last_well[0]:
+            if well_number > int(first_well[1:]) and well_number <= int(last_well[1:]):
+                if type(log_level_reduction) != str:
+                    if log_level_reduction >= 3.0:
+                        
+                        #if TRUE gets the actual concentrations of the first &
+                        #second antibiotic in the well:
+                        actual_first_antibiotic_concentration = dataframe[dataframe['Well'] == well_name][name_of_first_antibiotic_column].values[0]
+                        actual_second_antibiotic_concentration = dataframe[dataframe['Well'] == well_name][name_of_second_antibiotic_column].values[0]
+                        
+                        #calculates the FICI-value:
+                        well_fici_value = ((actual_first_antibiotic_concentration/first_antibiotic_bbc_on_actual_board)
+                                            + (actual_second_antibiotic_concentration/second_antibiotic_bbc_on_actual_board))
+                        
+                        return well_name, well_fici_value
+    
+    else:
+        if well_letter > first_well[0] and well_letter <= last_well[0]:
+            if well_number > int(first_well[1:]) and well_number <= int(last_well[1:]):
+                if type(log_level_reduction) != str:
+                    if log_level_reduction >= 3.0:
+                        well_fici_value = 'not computable'
+    
+                        return well_name, well_fici_value
 
 
 #defines function, which calls function 'fici_calc' for every checkerboard: 
@@ -646,13 +728,28 @@ def fici_values_per_board_calc(dataframe, checkerboard_list, actual_board,
     #get the first BBC of every antibiotic for the checkerboard:
     first_antibiotic_bbc_on_actual_board = first_antibiotic_first_bbc_value_list[actual_board]
     second_antibiotic_bbc_on_actual_board = second_antibiotic_first_bbc_value_list[actual_board]
-    
+
+    #check if a BBC-value is existing for each antibiotic:
+    first_antibiotic_existing =False
+    second_antibiotic_existing = False
+    both_BBC_values_exist = False
+
+    if type(first_antibiotic_bbc_on_actual_board) != str:
+        first_antibiotic_existing = True
+
+    if type(second_antibiotic_bbc_on_actual_board) != str:
+        second_antibiotic_existing = True
+
+    if first_antibiotic_existing == True and second_antibiotic_existing == True:
+        both_BBC_values_exist = True
+
     #calls function 'fici_calc' for every row in 'row_count':
     fici_values_per_well = list(fici_calc(data, rows, first_well, last_well,
                                            first_antibiotic_bbc_on_actual_board,
                                            second_antibiotic_bbc_on_actual_board,
                                            name_of_first_antibiotic_column,
-                                           name_of_second_antibiotic_column
+                                           name_of_second_antibiotic_column,
+                                           both_BBC_values_exist
                                            ) for rows in range(row_count))
 
     #deletes all 'None'-entries in 'fici_values':
@@ -699,6 +796,8 @@ def first_in_row(well_list, actual_letter, first_well_in_row_list,
     
     if len(first_well_in_row_list) > 0:
         
+        #check if the number of the last well in the list matches the smallest
+        #number of all wells:
         if first_well_in_row_list[-1][1:] == end_well_number:   
             
             #if TRUE the loop is interrupted
@@ -828,9 +927,9 @@ def first_well_identifier(checkerboard_list, actual_board, fici_values_list):
                                               for inner in outer))
 
     #merges both lists & deletes duplicates:
-    first_well_in_row = list(dict.fromkeys(first_well_in_row + first_well_in_column))
+    first_wells_summarised = list(dict.fromkeys(first_well_in_row + first_well_in_column))
 
-    return first_well_in_row
+    return first_wells_summarised
 
 
 #defines function which pairs the wells of the 'first_wells_in_rows_and_columns
@@ -853,15 +952,22 @@ def FICI_finder(fici_values_list, first_wells_in_rows_and_columns_list,
 #defines function which calls function 'FICI_finder' for every checkerboard:
 def FICI_finder_per_board(actual_board, fici_values_list,
                           first_wells_in_rows_and_columns_list):
+
+    if fici_values_list[actual_board][0] != 'no wells':
+
+        #calls function 'FICI_finder' for every element in 'first_wells_in_rows_and
+        #_columns_list' for the actual checkerboard:
+        corresponding_fici_value_with_well = list(FICI_finder(fici_values_list,
+                                                              first_wells_in_rows_and_columns_list,
+                                                              actual_board, elements)
+                                                  for elements in range(len(first_wells_in_rows_and_columns_list[actual_board])))
     
-    #calls function 'FICI_finder' for every element in 'first_wells_in_rows_and
-    #_columns_list' for the actual checkerboard:
-    corresponding_fici_value_with_well = list(FICI_finder(fici_values_list,
-                                                          first_wells_in_rows_and_columns_list,
-                                                          actual_board, elements)
-                                              for elements in range(len(first_wells_in_rows_and_columns_list[actual_board])))
+        return corresponding_fici_value_with_well
     
-    return corresponding_fici_value_with_well
+    else:
+        corresponding_fici_value_with_well = [['no well', 'not computable']]
+
+        return corresponding_fici_value_with_well
 
 
 #defines function which appends the FICI-values from a list of Well-name- &
@@ -879,7 +985,7 @@ def append_FICI_values_to_board(fici_values_with_well_list, actual_board):
 def tangent_value_calc(dataframe_one, dataframe_two, actual_well, time_values):
     
     actual_well_dataframe_part = dataframe_one[dataframe_one['Well'] == actual_well]
-
+    
     #get µ, n the index of µ_max and the to µ-max corresponding fitted value:
     µ = actual_well_dataframe_part['µ_max'].values[0]
     n = actual_well_dataframe_part['y0'].values[0]
@@ -900,7 +1006,11 @@ def tangent_value_calc(dataframe_one, dataframe_two, actual_well, time_values):
 
 
 ################################################################################
-## Change working directory if result-files are directed to other directory
+## Set up results-directory & change working-directory if necessary
+
+#check if output-directory exists & create a Results-directory in it:
+output_path = str(output_path) + '/SGT_Analysis_Results'
+os.makedirs(output_path, exist_ok = True)
 
 #check if output-flag was used:
 if output_path != os.getcwd():
@@ -914,6 +1024,45 @@ if output_path != os.getcwd():
 
 for i in tqdm(range(1), desc = 'Checking board'):
     
+    #check if number of first- & last-wells match:
+    if len(first_wells) != len(last_wells):
+        sys.exit('>> Number of first- and last-wells doesn´t match. <<')
+
+    else:
+
+        #check if number of first wells match number of checkerboards:
+        if len(first_wells) != board_count:
+            sys.exit('>> Number of given first- and last-wells doesn´t match with number of checkerboards. <<')
+
+        else:
+
+            #check if number of given control-wells match number of
+            #checkerboards:
+            if len(control_wells) != board_count:
+                sys.exit('>> Number of given control-wells doesn´t match with number of checkerboards. <<')
+            
+            else:
+
+                if include_std_curve == True:
+                    
+                    #check if number of given std-curve-wells match number of
+                    #checkerboards:
+                    if len(std_curve_wells) != board_count:
+                        sys.exit('>> Number of given std-curve-wells doesn´t match with number of checkerboards. <<')
+                    
+                    else:
+                        #create list 'checkerboards' with board-number, first-, last- & 
+                        #control-wells:
+                        checkerboards = list((board, first_wells[board], last_wells[board], 
+                                              control_wells[board], std_curve_wells[board]) 
+                                            for board in range(board_count))
+                
+                else:
+                    #create list 'checkerboards' with board-number, first-, last- & 
+                    #control-wells:
+                    checkerboards = list((board, first_wells[board], last_wells[board], 
+                                          control_wells[board]) for board in
+                                        range(board_count))
 
     #get number of given concentrations for each antibiotic:
     antibiotic_one_conc_count = len(antibiotic_one_conc)
@@ -1004,13 +1153,9 @@ for i in tqdm(range(1), desc = 'Checking board'):
             if antibiotic_two_conc_count == len(well_number_list[boards]):
                 antibiotic_columns_name = antibiotic_two_name
                 antibiotic_columns_conc = antibiotic_two_conc
-                
-                second_block_first_half_done = True
 
             else:
-                print('Number of given concentrations for antibiotic two doesnt´t match the number columns of the checkerboard-layout, when assigning antibiotic one to the rows. Please check your parameters')
-                
-                second_block_first_half_done = False
+                sys.exit('>> Number of given concentrations for antibiotic two doesnt´t match the number columns of the checkerboard-layout, when assigning antibiotic one to the rows. Please check your parameters. <<')
             
         elif antibiotic_one_conc_count == len(well_number_list[boards]):
             antibiotic_columns_name = antibiotic_one_name
@@ -1019,18 +1164,12 @@ for i in tqdm(range(1), desc = 'Checking board'):
             if antibiotic_two_conc_count == len(well_number_list[boards]):
                 antibiotic_rows_name = antibiotic_two_name
                 antibiotic_rows_conc = antibiotic_two_conc
-                
-                second_block_first_half_done = True
 
             else:
-                print('Number of given concentrations for antibiotic two doesnt´t match the number of rows of the checkerboard-layout, when assigning antibiotic one to the columns. Please check your parameters.')
-                
-                second_block_first_half_done = False
+                sys.exit('>> Number of given concentrations for antibiotic two doesnt´t match the number of rows of the checkerboard-layout, when assigning antibiotic one to the columns. Please check your parameters. <<')
 
         elif antibiotic_one_conc_count != len(well_letter_list[boards]) and antibiotic_one_conc_count != len(well_number_list[boards]):
-            print('Number of given concentrations for antibiotic one doesn´t match neither the number of rows nor the number of columns of checkerboard-layout. Please check your parameters.')
-            
-            second_block_first_half_done = False
+            sys.exit('>> Number of given concentrations for antibiotic one doesn´t match neither the number of rows nor the number of columns of checkerboard-layout. Please check your parameters. <<')
 
     #if TRUE assign that antibiotic one rises in the rows and antibiotic two in the columns:
     else:
@@ -1043,17 +1182,104 @@ for i in tqdm(range(1), desc = 'Checking board'):
                 antibiotic_columns_name = antibiotic_two_name
                 antibiotic_columns_conc = antibiotic_two_conc
 
-                second_block_first_half_done = True
-
             else:
-                print('Number of given concentrations of both antibiotics doesn´t match with the given checkerboard-layout. Please check that the number of rows and columns match with the number of given concentrations for each antibiotic.')
-                
-                second_block_first_half_done = False
+                sys.exit('>> Number of given concentrations of both antibiotics doesn´t match with the given checkerboard-layout. Please check that the number of rows and columns match with the number of given concentrations for each antibiotic. <<')
 
         else:
-            print('Number of given concentrations of both antibiotics doesn´t match with the given checkerboard-layout. Please check that the number of rows and columns match with the number of given concentrations for each antibiotic.')
+            sys.exit('>> Number of given concentrations of both antibiotics doesn´t match with the given checkerboard-layout. Please check that the number of rows and columns match with the number of given concentrations for each antibiotic. <<')
+
+
+################################################################################
+## Get list of all used wells     
+
+    included_well_list = []
+    std_curve_well_list = []
+    
+    #create list of all wells included in the checkerboards:
+    for boards in checkerboards:
+
+        #get wells of the actual board:
+        first_well_character = boards[1][0].lower()
+        first_well_number = int(boards[1][1:])
+        last_well_character = boards[2][0].lower()
+        last_well_number = int(boards[2][1:])
+        control_well = boards[3]
+
+        included_wells_on_board = list(control_well[index] for index in range(len(control_well)))
+        
+        #get alphabetical index of first & last well:
+        first_well_character_index = string.ascii_lowercase.index(first_well_character)
+        last_well_character_index = string.ascii_lowercase.index(last_well_character)
+
+        #create lists of all characters & numbers in the checkerboard:
+        number_list = np.linspace(first_well_number, last_well_number, 
+                                  (last_well_number - first_well_number +1))
+        letter_list = list(string.ascii_uppercase[first_well_character_index:(last_well_character_index + 1)])
+
+        #primary for-loop over all letters:
+        for letter in letter_list:
+
+            #secondary for-loop over all numbers:
+            for number in number_list:
+                
+                #combines the acutal letter and number and appends 
+                #it to main-array (inserting a 0 if the number is <10):
+                if number < 10:
+                    included_well = str(letter) + '0' + str(int(number))
+                    included_wells_on_board.append(included_well)
+
+                else:
+                    included_well = letter + str(int(number))
+                    included_wells_on_board.append(included_well)
+        
+        if include_std_curve == True:
+            std_curve_well_on_board = []
+            first_std_curve_well_character = boards[4][0][0].lower()
+            first_std_curve_well_number = int(boards[4][0][1:])
+            last_std_curve_well_character = boards[4][1][0].lower()
+            last_std_curve_well_number = int(boards[4][1][1:])
             
-            second_block_first_half_done = False
+            first_std_well_character_index = string.ascii_lowercase.index(first_std_curve_well_character)
+            last_std_well_character_index = string.ascii_lowercase.index(last_std_curve_well_character)
+
+            number_list = np.linspace(first_std_curve_well_number, last_std_curve_well_number, 
+                                  (last_std_curve_well_number - first_std_curve_well_number +1))
+            letter_list = list(string.ascii_uppercase[first_std_well_character_index:(last_std_well_character_index + 1)])
+
+            #primary for-loop over all letters:
+            for letter in letter_list:
+    
+                #secondary for-loop over all numbers:
+                for number in number_list:
+                    
+                    #combines the acutal letter and number and appends 
+                    #it to main-lists (inserting a 0 if the number is 
+                    #< 10):
+                    if number < 10:
+                        included_well = str(letter) + '0' + str(int(number))
+                        included_wells_on_board.append(included_well)
+                        std_curve_well_on_board.append(included_well)
+                    else:
+                        included_well = letter + str(int(number))
+                        included_wells_on_board.append(included_well)
+                        std_curve_well_on_board.append(included_well)
+            
+            std_curve_well_list.append(std_curve_well_on_board)
+
+        included_well_list.append(included_wells_on_board)    
+    
+    #join nested lists & delete duplicates:
+    included_well_list = [inner for outer in included_well_list for inner in outer]
+    included_well_list = list(dict.fromkeys(included_well_list))
+
+    if include_std_curve == True:
+
+        #for-loop over all checkerboards to change actual checkerboard-
+        #entry to a list & replace the std-curve-well-entry with the
+        #whole std-curve-well-list:
+        for boards in range(len(checkerboards)):
+            checkerboards[boards] = list(checkerboards[boards])
+            checkerboards[boards][4] = std_curve_well_list[boards]
 
 
 ################################################################################
@@ -1189,6 +1415,9 @@ for i in tqdm(range(1), desc = 'Conversion'):
                 string = string[:1] + '0' + string[1:] 
                 data_raw.iloc[index, 0] = string
 
+    #delete all wells that are not part of a checkerboard or std-curve:
+    data_raw = data_raw[data_raw['Well'].isin(included_well_list)]
+
 
 ################################################################################
 ## Wide-to-long-conversion
@@ -1212,6 +1441,7 @@ for i in tqdm(range(1), desc = 'Apply curve-fit'):
     #calls function 'curve_fit_calc' for every well in well_plate & splits the
     #output to two variables:
     fitted_values, popt_list = map(list, zip(*list(curve_fit_calc(data_melted, well) for well in well_plate)))
+
 
 
 ################################################################################
@@ -1285,17 +1515,25 @@ for i in tqdm(range(1), desc = 'Calculate µ'):
         #an specific well
         fitted_values_list = list(data_merged[data_merged['Well'] == well]['Fitted Value'].values 
                                   for well in well_plate)
-
+        
         #calls function 'intersection_point' for every element in 
         #fitted_values_list:
         intersection_point_index_list = list(intersection_point(cut_off_values_list, fitted_values_list, element) 
                                              for element in range(len(fitted_values_list)))
         
+        #test if there are any intersection-points with the fitted curves:
+        intersection_point_index_list_test = [inner for outer in intersection_point_index_list for inner in outer]
+
+        if len(intersection_point_index_list_test) == 0:
+            
+            #if there are no intersection-points at all exit the program:
+            sys.exit('>> CutOff-value doesn´t match the fitted plots. <<')
+
         #get all indexes from 'intersection_point_index_list, which elements are
         #empty:
         empty_intersection_list_index = list(element for element in range(len(intersection_point_index_list)) 
                                              if len(intersection_point_index_list[element]) == 0)
-
+        
         #deletes elements where the intersection_point_index of the 
         #corresponding well was empty:
         intersection_point_index_list_with_intersection = np.delete(intersection_point_index_list, empty_intersection_list_index)
@@ -1317,7 +1555,7 @@ for i in tqdm(range(1), desc = 'Calculate µ'):
                                         intersection_point_index_list_with_intersection, 
                                         element) for element in 
                                         range(len(wells_with_intersection)))
-
+        
         #summarise a list of well-name, time-, fitted- & µ-value of each well in
         #one array:
         values_array_for_wells_with_intersection = list((wells_with_intersection[element], 
@@ -1364,12 +1602,23 @@ for i in tqdm(range(1), desc = 'Calculate µ'):
     #area iver which the tangent is calculated:
     elif tangent_fitting_method == 'linear_area':
 
+        #check if upper & lower boundary fit with the growth-curves:
+        if data_merged['Fitted Value'].max() <= upper_boundary:
+        
+            sys.exit('>> Upper boundary to high for fitted curves. <<')
+    
+        else:
+
+            if data_merged['Fitted Value'].min() >= lower_boundary:
+
+                sys.exit('>> Lower boundary to low for fitted curves. <<')
+
         #gets list of all wells in 'data_merged' & deletes duplicates:
         well_plate = list(dict.fromkeys(list(data_merged['Well'])))
 
         #calls function 'µ_calc_by_boundaries' for every well in 'well_plate':
         boundary_values = list(µ_calc_by_boundaries(data_merged, well, upper_boundary, lower_boundary) for well in well_plate)
-
+        
         data_µ_max = pd.DataFrame(boundary_values, columns = ['Well', 'Upper Boundary', 'Time', 'Lower Boundary', 'Lower Time', 'µ_max'])
         data_µ_max = data_µ_max.filter(items = ('Well', 'Time', 'µ_max'), axis=1)
 
@@ -1388,9 +1637,13 @@ for i in tqdm(range(1), desc = 'Calculate µ'):
         else:
             data_merged = data_merged.join(data_µ_max_multiindex, on = ['Well', 'Time'])
         
+        
         #creates an array of all rows from 'data_merged' that match the wells
         #listed in 'boundary_values' and where 'µ_max' is not 'nan':
         value_array_from_data_merged = list(data_merged.loc[(data_merged['Well'] == elements[0]) & (pd.notna(data_merged['µ_max'])), :].values[0] for elements in boundary_values)
+        
+        #delete second index (= 'Value') from all nested arrays:
+        value_array_from_data_merged = np.delete(value_array_from_data_merged, 2, axis = 1)
         
         #calls function 'n_calc' for every element in 'value_array_from_data
         #_merged' & splits output into two lists:
@@ -1398,7 +1651,6 @@ for i in tqdm(range(1), desc = 'Calculate µ'):
         
         #creates dataframes from the resulting arrays:
         data = pd.DataFrame(y0_list, columns = ['Well', 'µ_max', 'y0'])
-
 
     #
     #
@@ -1412,6 +1664,9 @@ for i in tqdm(range(1), desc = 'Calculate µ'):
         #calls function 'µ_calc' for every well in 'well_plate':
         µ_values = list(µ_calc(data_merged, well) for well in well_plate)
 
+        #display resulting array:
+        #print(µ_values)
+
         #calls function 'find_µ_max' for every array in 'µ_values':
         µ_max_list = list(find_µ_max(array) for array in µ_values)
 
@@ -1420,6 +1675,9 @@ for i in tqdm(range(1), desc = 'Calculate µ'):
 
         #create a dataframe from the resulting array:
         data_µ_max = pd.DataFrame(µ_max_list, columns = ['Well', 'Time', 'µ_max'])
+
+        #display resulting dataframe:
+        #print("data_µ_max:\n", data_µ_max)#[data_µ_max['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'): ")] #Optional: only a User-chosen Well is displayed
 
         #create multiindex 'Well' and 'Time' for dataframe 'data_µ_max':
         data_µ_max_multiindex = data_µ_max.set_index(['Well', 'Time'], drop = True)
@@ -1436,10 +1694,16 @@ for i in tqdm(range(1), desc = 'Calculate µ'):
         else:
             data_merged = data_merged.join(data_µ_max_multiindex, on = ['Well', 'Time'])
 
+        #display dataframe 'data_merged':
+        #print("data_merged:\n", data_merged, "\n")#[data_merged['Well'] == input("Choose well by entering the well-name (e.g.: 'A01'): ")] #Optional: only a User-chosen Well is displayed
+
         #creates an array of all rows from 'data_merged' that match the wells
         #listed in 'boundary_values' and where 'µ_max' is not 'nan':
         value_array_from_data_merged = list(data_merged.loc[(data_merged['Well'] == elements[0]) & (pd.notna(data_merged['µ_max'])), :].values[0] for elements in µ_max_list)
-
+        
+        #delete second index (= 'Value') from all nested arrays:
+        value_array_from_data_merged = np.delete(value_array_from_data_merged, 2, axis = 1)
+        
         #calls function 'n_calc' for every element in 'value_array_from_data
         #_merged' & splits output into two lists:
         y0_list, unneeded_list = map(list, zip(*list(n_calc(elements) for elements in value_array_from_data_merged)))
@@ -1452,6 +1716,7 @@ for i in tqdm(range(1), desc = 'Calculate µ'):
 ## SGT-calculation
 
 for i in tqdm(range(1), desc = 'Calculate SGT'):
+    
     #get row-count of dataframe 'data':
     row_count = data.shape[0]
 
@@ -1471,12 +1736,13 @@ for i in tqdm(range(1), desc = 'Calculate log-level-reduction'):
     
     #calls function 'board_iteration' for every checkerboard:
     calculated_values = list(board_iteration(data, antibiotic_rows_conc, 
-                              antibiotic_columns_conc, checkerboards, boards, 
-                              board_count) for boards in range(len(checkerboards)))
-
+                             antibiotic_columns_conc, include_std_curve, 
+                             checkerboards, boards, board_count)
+                             for boards in range(len(checkerboards)))
+    
     #join nested lists to one list:
     calculated_values = [inner for outer in calculated_values for inner in outer]
-
+    
     #creates dataframe from calculated data:
     data_calculated_values = pd.DataFrame(calculated_values, columns = ['Well',
         'SGT minus control', 'log-level-reduction',
@@ -1524,6 +1790,7 @@ for i in tqdm(range(1), desc = 'Calculate log-level-reduction'):
 ## Determination of BBC-Wells
 
 for i in tqdm(range(1), desc = 'Determine BBC-wells'):
+    
     #calls function 'BBC_determination_per_board' for every checkerboard &
     #splits output into two lists:
     first_antibiotic_bbcs, second_antibiotic_bbcs = map(list, zip(*list(BBC_determination_per_board(data,
@@ -1531,7 +1798,7 @@ for i in tqdm(range(1), desc = 'Determine BBC-wells'):
                                                                                                     first_antibiotic_column,
                                                                                                     second_antibiotic_column,
                                                                                                     boards)
-                                                                  for boards in range(len(checkerboards)))))
+                                                                        for boards in range(len(checkerboards)))))
 
     #appends the first element of every nested list in the 'first/second_
     #antibiotic_bbcs'-list to a new list:
@@ -1543,6 +1810,7 @@ for i in tqdm(range(1), desc = 'Determine BBC-wells'):
 ## Determination of synergism
 
 for i in tqdm(range(1), desc = 'Determine synergism'):
+    
     #calls function 'fici_values_per_board_calc' for every checkerboard:
     fici_values = list(fici_values_per_board_calc(data, checkerboards, boards, 
                                                   first_antibiotic_first_bbc,
@@ -1550,6 +1818,14 @@ for i in tqdm(range(1), desc = 'Determine synergism'):
                                                   first_antibiotic_column,
                                                   second_antibiotic_column
                                                   ) for boards in range(len(checkerboards)))
+
+    #check if for any well an fici-value was calculated:
+    for elements in range(len(fici_values)):
+        if len(fici_values[elements][0]) == 0:
+            
+            #if no fici-value was calculated add a comment:
+            fici_values[elements][0] = 'no wells'
+            fici_values[elements][1] = '-'
 
 
 ################################################################################
@@ -1560,8 +1836,8 @@ for i in tqdm(range(1), desc = 'Determine synergism'):
 
     #calls function 'first_well_identifier' for each checkerboard:
     first_wells_in_rows_and_columns = list(first_well_identifier(checkerboards,
-                                            boards, fici_values) for boards in 
-                                            range(len(checkerboards)))
+                                           boards, fici_values) for boards in 
+                                           range(len(checkerboards)))
 
 
 ################################################################################
@@ -1580,15 +1856,18 @@ for i in tqdm(range(1), desc = 'Determine synergism'):
 
     #creates dataframe 'data_fici_values' from 'fici_values_with_well':
     data_fici_values = pd.DataFrame(fici_values_with_well, columns = ['Well', 'FICI-Value'])
-
+    
     #calls function 'append_FICI_values_to_board' for every checkerboard:
     board_fici_values = list(append_FICI_values_to_board(fici_values_with_well_per_board,
                                                          boards)
-                             for boards in range(len(checkerboards)))    
-
+                             for boards in range(len(checkerboards)))
+    
+    #deletes all string elements from the "board_fici_values"-list nested lists:
+    board_fici_values = [[ subelement for subelement in element if type(subelement) != str ] for element in board_fici_values]
+    
     #computes the average of the fici-values of the first wells in all rows and
-    #columns of the checkerboard:
-    fici_average = list(np.average(board_fici_values[boards]) for boards
+    #columns of the checkerboard:  
+    fici_average = list(np.average(board_fici_values[boards]) if len(board_fici_values[boards]) > 0 else 'not computable' for boards 
                         in range(len(checkerboards)))
 
 
@@ -1596,6 +1875,7 @@ for i in tqdm(range(1), desc = 'Determine synergism'):
 ## Summarise results in files
 
 for i in tqdm(range(1), desc = 'Summarise results'):
+    
     #creates copy of dataframe 'data':
     data_results = data.copy()
 
@@ -1676,32 +1956,32 @@ for i in tqdm(range(1), desc = 'Summarise results'):
     #value (= dataframe) of the dictionary:
     for keys in range(len(checkerboard_dict)):
         
-            actual_key = list(checkerboard_dict)[keys]
-
-            #variable that references actual checkerboard from the dictionary
-            result_md = checkerboard_dict[actual_key]
-
-            if keys == 0:
-                
-                #creates a file 'result.md' with the command to write data to it:
-                result_file = open("Results.md", "w")
+        actual_key = list(checkerboard_dict)[keys]
+        
+        #variable that references actual checkerboard from the dictionary
+        result_md = checkerboard_dict[actual_key]
+        
+        if keys == 0:
             
-            elif keys > 0:
-                
-                #creates a file 'result.md' with the command to append data to it:
-                result_file = open("Results.md", "a")
-
-            #writes data to the result-file:
-            result_file.write('## ')
-            result_file.write(actual_key)
-            result_file.write('\nThe average FICI-value of the Checkerboard is:  ')
-            result_file.write(str(fici_average[keys]))
-            result_file.write('\n')
-            result_file.write(result_md)
-            result_file.write('\n\n')
+            #creates a file 'result.md' with the command to write data to it:
+            result_file = open("Results.md", "w")
+        
+        elif keys > 0:
             
-            #closes the file:
-            result_file.close()
+            #creates a file 'result.md' with the command to append data to it:
+            result_file = open("Results.md", "a")
+        
+        #writes data to the opened file:
+        result_file.write('## ')
+        result_file.write(actual_key)
+        result_file.write('\nThe average FICI-value of the Checkerboard is:  ')
+        result_file.write(str(fici_average[keys]))
+        result_file.write('\n')
+        result_file.write(result_md)
+        result_file.write('\n\n')
+        
+        #closes the file:
+        result_file.close()
 
     #creates dataframe:
     data_sigmoid_parameters = pd.DataFrame(popt_list, columns = ['Well',
@@ -1749,7 +2029,7 @@ for i in tqdm(range(1), desc = 'Summarise results'):
     sigmoid_formula = 'y = L / (1 + e^(-k * (x - x0))) + n'
     tangent_formula = 'y = m * x + n'
 
-    #writes formulas to file:
+    #writes results to file:
     result_file = open("Results.md", "a")
     result_file.write('## Parameters of the tangent- and the sigmoid-function of each well\n\n')
     result_file.write('Parameters for the formulars of the tangent- and sigmoid-function of each well.\n')
@@ -1767,6 +2047,7 @@ for i in tqdm(range(1), desc = 'Summarise results'):
 ## Plot resulting data
 
 for i in tqdm(range(1), desc = 'Creating diagramms'):
+    
     #get copy of dataframe 'data_merged':
     data_results_plot = data_merged.copy()
 
@@ -1788,7 +2069,7 @@ for i in tqdm(range(1), desc = 'Creating diagramms'):
 
     #creates dataframe from 'tangent_values':
     data_tangent_values = pd.DataFrame(tangent_values, columns = ['Well', 'Time', 'Tangent y-value'])
-
+    
     #creates multiindex on 'Well' & 'Time' for dataframe 'data_tangent_values':
     data_tangent_values_multiindex = data_tangent_values.set_index(['Well', 'Time'], drop = True)
 
@@ -1823,28 +2104,28 @@ for i in tqdm(range(1), desc = 'Creating diagramms'):
     if tangent_fitting_method == 'linear_area':
         
         data_results_plot_upper = data_results_plot.filter(items = 
-                                ('Well', 'Time', 'Upper Boundary'), axis=1)
+                               ('Well', 'Time', 'Upper Boundary'), axis=1)
         data_results_plot_upper.loc[:, 'Source'] = 'upper boundary'
 
 
         data_results_plot_lower = data_results_plot.filter(items = 
-                                ('Well', 'Time', 'Lower Boundary'), axis=1)
+                               ('Well', 'Time', 'Lower Boundary'), axis=1)
         data_results_plot_lower.loc[:, 'Source'] = 'lower boundary'
 
 
     data_results_plot_fitted = data_results_plot.filter(items = 
-                                ('Well', 'Time', 'Fitted Value'), axis=1)
+                               ('Well', 'Time', 'Fitted Value'), axis=1)
     data_results_plot_fitted.loc[:, 'Source'] = 'fitted data'
 
 
     data_results_plot_tangent = data_results_plot.filter(items = 
-                                ('Well', 'Time', 'Tangent y-value'), axis=1)
+                               ('Well', 'Time', 'Tangent y-value'), axis=1)
     data_results_plot_tangent.loc[:, 'Source'] = 'tangent'
 
 
     data_results_plot_µ_max = data_results_plot.filter(items = 
-                                ('Well', 'Time', 'µ_max corresponding Value')
-                                , axis=1)
+                               ('Well', 'Time', 'µ_max corresponding Value')
+                               , axis=1)
     data_results_plot_µ_max.loc[:, 'Source'] = 'µ_max'
 
 
@@ -1870,8 +2151,8 @@ for i in tqdm(range(1), desc = 'Creating diagramms'):
                                                       data_results_plot_µ_max
                                                       ], ignore_index=True, 
                                                       sort=False)
-
-
+    
+    
     #
     alt.data_transformers.enable('default', max_rows=None)
 
@@ -1990,4 +2271,4 @@ for i in tqdm(range(1), desc = 'Creating diagramms'):
             )
 
     #save plot:
-    plotted.save('Results_diagrams.html', scale_factor = 5.0)
+    plotted.save("chart.svg", scale_factor = 5.0)
