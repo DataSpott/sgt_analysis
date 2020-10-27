@@ -1,12 +1,12 @@
 [![badge](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DataSpott/sgt_analysis/blob/master/sgt_analyser.ipynb)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4050080.svg)](https://doi.org/10.5281/zenodo.4050080)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4139379.svg)](https://doi.org/10.5281/zenodo.4139379)
 
 # SGT-Analyser
 * by Riccardo Spott
 
 ## Cite as
 
-> Spott, Riccardo, & Brandt, Christian. (2020, September 25). SGT-Analyser: A tool to automatically analyse antibiotic-synergism via bacterial growth-curves (checkerboards) (Version v0.9.1). Zenodo. http://doi.org/10.5281/zenodo.4050080
+> Spott, Riccardo, & Brandt, Christian. (2020, October 27). SGT-Analyser: A tool to automatically analyse antibiotic-synergism via bacterial growth-curves (checkerboards) (Version v0.10.0). Zenodo. http://doi.org/10.5281/zenodo.4139379
 
 ## What is SGT-Analyser?
 The SGT-Analyser is an tool for the automated analysis of growth-curves of, in an checkerboard-style treated bacteria.
