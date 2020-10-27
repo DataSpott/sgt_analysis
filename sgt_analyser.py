@@ -2271,4 +2271,4 @@ for i in tqdm(range(1), desc = 'Creating diagramms'):
             )
 
     #save plot:
-    plotted.save("chart.svg", scale_factor = 5.0)
+    plotted.save("Results_diagrams.html", scale_factor = 5.0)
